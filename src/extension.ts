@@ -8,6 +8,23 @@ const fs = require("fs")
 const path = require("path")
 const homedir = require("os").homedir()
 
+const schemaFP: string = "SCHEMA_PATH"
+
+// Call this whenever you want to append to schema
+function appendSchema() {
+	// Get Config
+	const yamlCfg = vscode.workspace.getConfiguration("yaml")
+
+	// Get Schema
+	let yamlSchemas: Object | undefined = yamlCfg.get("schemas")
+
+	// If scehma Key does not exists append direktiv schema
+	if (yamlSchemas && !(schemaFP in yamlSchemas)) {
+		console.log(schemaFP + " no exists")
+		yamlCfg.update("schemas", {...yamlSchemas, [schemaFP]: "*.direktiv.yaml"}, 1)
+	}
+}
+
 export const manifestDirektiv = ".direktiv.manifest.json"
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -17,6 +34,9 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "direktiv" is now active!');
 
+	appendSchema()
+
+	vscode.file
 	
 	let logs = vscode.window.createOutputChannel("Direktiv")
 
