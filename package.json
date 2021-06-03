@@ -15,11 +15,34 @@
 		"onCommand:direktiv.pushWorkflow",
 		"onCommand:direktiv.updateWorkflow",
 		"onCommand:direktiv.executeWorkflow",
-		"onCommand:direktiv.deleteWorkflow"
+		"onCommand:direktiv.deleteWorkflow",
+		"onCommand:direktiv.addInstanceManager",
+		"onView:instances"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "instance-view",
+					"title": "Direktiv",
+					"icon": "resources/direktiv.svg"
+				}
+			]
+		},
+		"views": {
+			"instance-view":[
+				{
+					"id": "instances",
+					"name": "Instances"
+				}
+			]
+		},
 		"commands": [
+			{
+				"title": "Add Direktiv Service",
+				"command": "direktiv.addInstanceManager"
+			},
 			{
 				"title": "Download Workflows",
 				"command": "direktiv.connect"
@@ -42,6 +65,12 @@
 			}
 		],
 		"menus": {
+			"view/title": [
+				{
+					"command": "direktiv.addInstanceManager",
+					"when": "view == instances"
+				}
+			],
 			"explorer/context": [
 				{
 					"when": "explorerResourceIsFolder",

@@ -37,6 +37,25 @@ export class InstanceManager {
             }
     }
 
+    async cancelInstance() {
+        try {
+            let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${this.token}`
+                }
+            })
+            if(!resp.ok) {
+                await this.handleError(resp, "Cancel Instance", "cancelInstance")
+            } else {
+                console.log("cancelled instance")
+                clearInterval(this.timer)
+            }
+        } catch(e){
+            vscode.window.showErrorMessage(e.message)
+        }
+    }
+
     async waitForInstanceCompletion() {
         return await new Promise((resolve, reject) => {
             this.timer = setInterval(() => {

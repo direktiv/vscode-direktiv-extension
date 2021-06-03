@@ -4,7 +4,6 @@ const fetch = require("node-fetch")
 const path = require("path")
 const fs = require("fs")
 const yaml = require("yaml")
-const mkdirp = require("mkdirp")
 const homedir = require('os').homedir();
 
 
