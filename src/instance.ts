@@ -53,7 +53,6 @@ export class InstanceManager {
             if(!resp.ok) {
                 await this.handleError(resp, "Cancel Instance", "cancelInstance")
             } else {
-                console.log("cancelled instance")
                 clearInterval(this.timer)
             }
         } catch(e){
@@ -139,7 +138,6 @@ export class InstanceManager {
                 await this.handleError(resp, "Get Logs", "getLogs")
             } else {
                 let json = await resp.json()
-                console.log('hello test')
                 // open the files temp for logs as this is coming from the activity bar 
                 let str = ``
                 for(let i=0; i < json.workflowInstanceLogs.length; i++) {

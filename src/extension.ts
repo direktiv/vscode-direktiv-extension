@@ -56,7 +56,6 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('instances', instances);
 
 	let openLogs = vscode.commands.registerCommand("direktiv.openLogs", async(instance: Instance)=>{
-		console.log(instance)
 		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label)
 		// await instanceManager.waitForInstanceCompletion()
 		await instanceManager.createTempFile()
@@ -75,7 +74,6 @@ export function activate(context: vscode.ExtensionContext) {
 				await instanceManager.getLogsForInstance()
 			},2000)
 		}
-		console.log('status of instance', status)
 	})
 
 	context.subscriptions.push(openLogs)

@@ -109,7 +109,6 @@ export class Instance extends vscode.TreeItem {
 
         // Initial Icon Selection
         if (values.status && !isRoot) {
-          console.log("values.status =", values.status)
           this.iconPath = {
             light: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`),
             dark: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`)
