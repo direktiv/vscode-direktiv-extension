@@ -42,7 +42,7 @@ public manager: Map<string, any>
     }
 
   add(url: string, token: string, namespace: string) {
-    this.manager.set(`${url}`, {namespace: namespace, token: token})
+    this.manager.set(`${url}/${namespace}`, {namespace: namespace, token: token})
     this.refresh()
   }
 
@@ -59,7 +59,7 @@ public manager: Map<string, any>
         if (this.manager.size > 0){
             this.manager.forEach((v, k)=>{
                 // Root Element
-                arr.push(new Instance(`${k}/${v.namespace}`, v, vscode.TreeItemCollapsibleState.Collapsed, true))
+                arr.push(new Instance(`${k}`, v, vscode.TreeItemCollapsibleState.Collapsed, true))
             })
         }  
         return Promise.resolve(arr)

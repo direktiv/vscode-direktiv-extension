@@ -15,7 +15,7 @@ For example if there is an image subfolder under your extension project workspac
 ## Requirements
 
 If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
+We require the use of the YAML extension. This will get prompted to install when you try execute Direktiv related actions. Or you can install this extension
 ## Extension Settings
 
 Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
