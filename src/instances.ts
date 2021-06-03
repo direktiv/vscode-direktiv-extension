@@ -79,7 +79,7 @@ public manager: Map<string, any>
             let arr = []
             if(json.workflowInstances) {
                 for(let i=0; i < json.workflowInstances.length; i++) {
-                    arr.push(new Instance(json.workflowInstances[i].id, json.workflowInstances[i].status, vscode.TreeItemCollapsibleState.None))
+                    arr.push(new Instance(json.workflowInstances[i].id, {url: url, token: token, namespace: namespace}, vscode.TreeItemCollapsibleState.None, true))
                 }
             }
             return arr
@@ -97,9 +97,11 @@ class Instance extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly values: any,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState
+    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    public readonly isRoot: boolean = false
   ) {
     super(label, collapsibleState);
         this.tooltip = `${this.label}`;
+        this.contextValue = isRoot ? "instance" : undefined;
   }
 }

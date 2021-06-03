@@ -62,6 +62,10 @@
 			{
 				"title": "Delete Workflow",
 				"command": "direktiv.deleteWorkflow"
+			},
+			{
+				"title": "Cancel Instance",
+				"command": "direktiv.cancelInstance"
 			}
 		],
 		"menus": {
@@ -69,6 +73,12 @@
 				{
 					"command": "direktiv.addInstanceManager",
 					"when": "view == instances"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "direktiv.cancelInstance",
+					"when": "viewItem == instance"
 				}
 			],
 			"explorer/context": [

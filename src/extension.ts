@@ -1,5 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { locale } from 'dayjs';
 import * as vscode from 'vscode';
 import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
@@ -46,23 +47,23 @@ export function activate(context: vscode.ExtensionContext) {
 	let addInstanceManager = vscode.commands.registerCommand("direktiv.addInstanceManager", async()=>{
 		// The code you place here will be executed every time your command is executed
 		// TODO replace constant variables with strings
-		let url = await vscode.window.showInputBox({title:"Enter url to connect to", ignoreFocusOut: true})
-		if (url === undefined) {
-			return
-		}
-		let namespace = await vscode.window.showInputBox({title: "Enter namespace to fetch", ignoreFocusOut: true})
-		if (namespace === undefined) {
-			return
-		}
-		let token = await vscode.window.showInputBox({title: "Enter token for authenticated access", ignoreFocusOut: true})
-		if (token === undefined) {
-			return
-		}
+		// let url = await vscode.window.showInputBox({title:"Enter url to connect to", ignoreFocusOut: true})
+		// if (url === undefined) {
+		// 	return
+		// }
+		// let namespace = await vscode.window.showInputBox({title: "Enter namespace to fetch", ignoreFocusOut: true})
+		// if (namespace === undefined) {
+		// 	return
+		// }
+		// let token = await vscode.window.showInputBox({title: "Enter token for authenticated access", ignoreFocusOut: true})
+		// if (token === undefined) {
+		// 	return
+		// }
 
 		// TODO remove when completed only for testing
-		// let url = "https://oz.direktiv.io"
-		// let namespace = "trent"
-		// let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0b2tlbi1iNzFmMjBkYS01ODc3LTQzNmItOGNmMS04MWU4MDY4YzFmNmIiLCJncm91cHMiOlsidG9rZW4tYjcxZjIwZGEtNTg3Ny00MzZiLThjZjEtODFlODA2OGMxZjZiIl0sImV4cCI6MTkzNzc4MDU3OCwiaXNzIjoiZGlyZWt0aXYifQ.MplLYyL2wK2D5fQfP1Xi9YiuuiRwusTD80CslTp-gnQ"
+		let url = "https://oz.direktiv.io"
+		let namespace = "trent"
+		let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0b2tlbi1iNzFmMjBkYS01ODc3LTQzNmItOGNmMS04MWU4MDY4YzFmNmIiLCJncm91cHMiOlsidG9rZW4tYjcxZjIwZGEtNTg3Ny00MzZiLThjZjEtODFlODA2OGMxZjZiIl0sImV4cCI6MTkzNzc4MDU3OCwiaXNzIjoiZGlyZWt0aXYifQ.MplLYyL2wK2D5fQfP1Xi9YiuuiRwusTD80CslTp-gnQ"
 	
 		instances.add(url, token, namespace)
 		// vscode.window.createTreeView("instances", {
@@ -191,6 +192,13 @@ export function activate(context: vscode.ExtensionContext) {
 	})
 
 	context.subscriptions.push(deleteWorkflow)
+
+	let cancelInstance = vscode.commands.registerCommand("direktiv.cancelInstance", async(uri: vscode.Uri)=>{
+		console.log("uri =", uri)
+		return
+	})
+
+	context.subscriptions.push(cancelInstance)
 
 }
 
