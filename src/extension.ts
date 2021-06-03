@@ -5,25 +5,32 @@ import * as vscode from 'vscode';
 import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
 import { InstancesProvider, Instance } from './instances';
+import { Schema } from './schema';
 
 const fs = require("fs")
 const path = require("path")
+const mkdirp = require("mkdirp")
 const homedir = require("os").homedir()
 
-const schemaFP: string = "SCHEMA_PATH"
+const schemaFP: string = JSON.stringify(Schema)
 
 // Call this whenever you want to append to schema
 function appendSchema() {
-	// Get Config
-	const yamlCfg = vscode.workspace.getConfiguration("yaml")
+	// check if the schema doesnt exist create it
+	if(!fs.existsSync(path.join(homedir, ".direktiv.schema.json"))){
 
-	// Get Schema
-	let yamlSchemas: Object | undefined = yamlCfg.get("schemas")
+		// write schema to file
+		fs.writeFileSync(path.join(homedir, ".direktiv.schema.json"), schemaFP)
+		// Get Config
+		const yamlCfg = vscode.workspace.getConfiguration("yaml")
 
-	// If schema Key does not exists append direktiv schema
-	if (yamlSchemas && !(schemaFP in yamlSchemas)) {
-		console.log(schemaFP + " no exists")
-		yamlCfg.update("schemas", {...yamlSchemas, [schemaFP]: "*.direktiv.yaml"}, 1)
+		// Get Schema
+		let yamlSchemas: Object | undefined = yamlCfg.get("schemas")
+
+		// If schema Key does not exists append direktiv schema
+		if (yamlSchemas && !(schemaFP in yamlSchemas)) {
+			yamlCfg.update("schemas", {...yamlSchemas, [path.join(homedir, ".direktiv.schema.json")]: "*.direktiv.yaml"}, 1)
+		}
 	}
 }
 
@@ -37,18 +44,36 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "direktiv" is now active!');
 
 	let instances = new InstancesProvider()
+
+	// Todo clean up files i made in the deactivate vscode
+	// make all directories
+	let dirpath = path.join("/tmp", ".direktiv")
+	mkdirp.sync(dirpath)
+
+	// append json shema to yaml files
+	appendSchema()
+                    
 	vscode.window.registerTreeDataProvider('instances', instances);
 
-	appendSchema()
-
-	
-	let logs = vscode.window.createOutputChannel("Direktiv")
-
 	let openLogs = vscode.commands.registerCommand("direktiv.openLogs", async(instance: Instance)=>{
-		console.log(instance)
-		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label, undefined)
+		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label)
 		// await instanceManager.waitForInstanceCompletion()
+		await instanceManager.createTempFile()
 		await instanceManager.getLogsForInstance()
+		await instanceManager.openLogs()
+		
+		let status = await instanceManager.getInstanceStatus()
+		if (status === "pending") {
+			let pollForNotPending = setInterval(async()=>{
+				status = await instanceManager.getInstanceStatus()
+				if (status !== "pending"){
+					setTimeout(()=>{
+						clearInterval(pollForNotPending)					
+					},4000)
+				} 
+				await instanceManager.getLogsForInstance()
+			},2000)
+		}
 	})
 
 	context.subscriptions.push(openLogs)
@@ -143,16 +168,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 			if(id !== "") {
 				// todo handle logging and other details
-				const instanceManager = new InstanceManager(json.url, jsonToken[json.url], id, logs)
-				vscode.window.withProgress({location: vscode.ProgressLocation.Notification, title: 'Waiting for Instance Completion', cancellable: true}, async (p, token)=>{
-					token.onCancellationRequested(async () => {
-						console.log("User canceled the long running operation");
-						await instanceManager.cancelInstance()
-					});
-					p.report({increment: 0})
-					await instanceManager.waitForInstanceCompletion()					
-					p.report({increment: 100})
-				})
+				const instanceManager = new InstanceManager(json.url, jsonToken[json.url], id)
+				await instanceManager.createTempFile()
+				await instanceManager.openLogs()
+				let timer = setInterval(async()=>{
+					let status = await instanceManager.getInstanceStatus()
+					if (status !== "pending"){
+						setTimeout(()=>{
+							clearInterval(timer)			
+						},4000)
+					} 
+					await instanceManager.getLogsForInstance()
+				},2000)
 			}
 
 		} else {
@@ -209,8 +236,9 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(deleteWorkflow)
 
 	let cancelInstance = vscode.commands.registerCommand("direktiv.cancelInstance", async(inst: Instance)=>{
-		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label, undefined)
+		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label)
 		await instanceManager.cancelInstance()
+		instances.refresh()
 	})
 
 	context.subscriptions.push(cancelInstance)

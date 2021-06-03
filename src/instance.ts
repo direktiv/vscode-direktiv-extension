@@ -16,20 +16,15 @@ export class InstanceManager {
     public url
 
     public timer: any
+    public fpath: string
 
-    public outputChannel
-
-    constructor(url:string, token: string, id: string, outputChannel: vscode.OutputChannel | undefined) {
+    constructor(url:string, token: string, id: string) {
         this.id = id
         this.token = token
         this.url = url
         this.timer = null
-        this.outputChannel = outputChannel
-        if(this.outputChannel !== undefined) {
-            this.outputChannel.appendLine(`Reading '${this.id}' logs...`)
-            this.outputChannel.show()
-        }
 
+        this.fpath = ""
     }
 
     async handleError(resp: any, summary: string, perm: string) {
@@ -58,7 +53,6 @@ export class InstanceManager {
             if(!resp.ok) {
                 await this.handleError(resp, "Cancel Instance", "cancelInstance")
             } else {
-                console.log("cancelled instance")
                 clearInterval(this.timer)
             }
         } catch(e){
@@ -74,6 +68,26 @@ export class InstanceManager {
         });
     }
     
+    async getInstanceStatus(): Promise<string> {
+        try {
+            let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.token}`
+                }
+            })
+            if(!resp.ok) {
+                await this.handleError(resp, "Get Instance", "getInstance")
+            } else {
+                let json = await resp.json()
+                return json.status
+            }
+        } catch(e) {
+            vscode.window.showErrorMessage(e.message)
+        }
+        return ""
+    }
+
     async getInstanceDetails(resolve: any, reject: any) {
         try {
             let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
@@ -97,6 +111,19 @@ export class InstanceManager {
             reject(e.message)
         }
     }
+    async createTempFile() {
+        let fpath = path.join("/tmp",".direktiv", this.id.replace(replacer, "-"))
+        this.fpath = fpath
+      
+        fs.writeFileSync(this.fpath, " ")
+       
+    }
+
+    async openLogs(){
+        // open str in vscode window
+        let td = await vscode.workspace.openTextDocument(this.fpath)
+        await vscode.window.showTextDocument(td, {preview: false})
+    }
 
     async getLogsForInstance() {
         try {
@@ -108,41 +135,18 @@ export class InstanceManager {
                 }
             })
             if(!resp.ok) {
-        console.log("yyyyfffff")
-
                 await this.handleError(resp, "Get Logs", "getLogs")
             } else {
                 let json = await resp.json()
-                if(this.outputChannel !== undefined) {
-                    for(let i=0; i < json.workflowInstanceLogs.length; i++) {
-                        let time = dayjs.unix(`${json.workflowInstanceLogs[i].timestamp.seconds}.${json.workflowInstanceLogs[i].timestamp.nanos}`).format("h:mm:ss.SSS")
-                        
-                        this.outputChannel.appendLine(`[${time}] ${json.workflowInstanceLogs[i].message}`)
-                    }
-                } else {
-                    console.log('hello test')
-                    // open the files temp for logs as this is coming from the activity bar 
-                    let str = ``
-                    for(let i=0; i < json.workflowInstanceLogs.length; i++) {
-                        let time = dayjs.unix(`${json.workflowInstanceLogs[i].timestamp.seconds}.${json.workflowInstanceLogs[i].timestamp.nanos}`).format("h:mm:ss.SSS")
-                        str += `[${time}] ${json.workflowInstanceLogs[i].message}\n`
-                    }
-
-                    // Todo clean up files i made in the deactivate vscode
-                    // make all directories
-                    let dirpath = path.join("/tmp", ".direktiv")
-
-                    mkdirp.sync(dirpath)
-                    
-
-                    // write file to directory
-                    fs.writeFileSync(path.join(dirpath, this.id.replace(replacer, "-")), str)
-
-                    // open str in vscode window
-                    let td = await vscode.workspace.openTextDocument(path.join(dirpath, this.id.replace(replacer, "-")))
-                    await vscode.window.showTextDocument(td, {preview: false})
-                    
+                // open the files temp for logs as this is coming from the activity bar 
+                let str = ``
+                for(let i=0; i < json.workflowInstanceLogs.length; i++) {
+                    let time = dayjs.unix(`${json.workflowInstanceLogs[i].timestamp.seconds}.${json.workflowInstanceLogs[i].timestamp.nanos}`).format("h:mm:ss.SSS")
+                    str += `[${time}] ${json.workflowInstanceLogs[i].message}\n`
                 }
+                // write file to directory
+                fs.writeFileSync(this.fpath, str)
+
             }
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
