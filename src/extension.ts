@@ -36,7 +36,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	appendSchema()
 
-	vscode.file
 	
 	let logs = vscode.window.createOutputChannel("Direktiv")
 
