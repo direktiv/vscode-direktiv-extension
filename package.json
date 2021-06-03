@@ -40,6 +40,14 @@
 		},
 		"commands": [
 			{
+				"command": "direktiv.refreshInstances",
+				"title": "Refresh",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
+			},
+			{
 				"title": "Add Direktiv Service",
 				"command": "direktiv.addInstanceManager"
 			},
@@ -66,6 +74,11 @@
 		],
 		"menus": {
 			"view/title": [
+				{
+					"command": "direktiv.refreshInstances",
+					"when": "view == instances",
+					"group": "navigation"
+				},
 				{
 					"command": "direktiv.addInstanceManager",
 					"when": "view == instances"
