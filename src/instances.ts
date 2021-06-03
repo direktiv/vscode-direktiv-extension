@@ -93,7 +93,7 @@ public manager: Map<string, any>
 
 }
 
-class Instance extends vscode.TreeItem {
+export class Instance extends vscode.TreeItem {
 
   constructor(
     public readonly label: string,
@@ -104,5 +104,13 @@ class Instance extends vscode.TreeItem {
     super(label, collapsibleState);
         this.tooltip = `${this.label}`;
         this.contextValue = isRoot ? "instance" : undefined;
+
+        // command to open the text editor
+        this.command = isRoot ? {
+          "command": "direktiv.openLogs",
+          "title": "Open Logs",
+          "tooltip": "Open Logs",
+          "arguments": [this]
+        }: undefined
   }
 }

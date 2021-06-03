@@ -4,7 +4,7 @@ import { locale } from 'dayjs';
 import * as vscode from 'vscode';
 import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
-import { InstancesProvider } from './instances';
+import { InstancesProvider, Instance } from './instances';
 
 const fs = require("fs")
 const path = require("path")
@@ -43,6 +43,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 	
 	let logs = vscode.window.createOutputChannel("Direktiv")
+
+	let openLogs = vscode.commands.registerCommand("direktiv.openLogs", async(instance: Instance)=>{
+		console.log(instance)
+		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label, undefined)
+		// await instanceManager.waitForInstanceCompletion()
+		await instanceManager.getLogsForInstance()
+	})
+
+	context.subscriptions.push(openLogs)
 
 	let refreshInstanceManager = vscode.commands.registerCommand("direktiv.refreshInstances", async()=>{
 		instances.refresh()
@@ -209,4 +218,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	// TODO handle "/tmp" to be os friendly
+	fs.rmdirSync(path.join("/tmp", ".direktiv"), { recursive: true });
+}
