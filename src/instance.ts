@@ -12,14 +12,18 @@ export class InstanceManager {
 
     public outputChannel
 
-    constructor(url:string, token: string, id: string, outputChannel: vscode.OutputChannel) {
+    constructor(url:string, token: string, id: string, outputChannel: vscode.OutputChannel | undefined = undefined) {
         this.id = id
         this.token = token
         this.url = url
         this.timer = null
         this.outputChannel = outputChannel
-        this.outputChannel.appendLine(`Reading '${this.id}' logs...`)
-        this.outputChannel.show()
+
+
+        if (this.outputChannel != undefined) {
+            this.outputChannel.appendLine(`Reading '${this.id}' logs...`)
+            this.outputChannel.show()
+        }
     }
 
     async handleError(resp: any, summary: string, perm: string) {
@@ -89,6 +93,10 @@ export class InstanceManager {
     }
 
     async getLogsForInstance() {
+        if (!this.outputChannel) {
+            throw Error(`outputChannel is not defined`)
+        }
+
         try {
             // TODO may need to handle pagination at some point.
             let resp = await fetch(`${this.url}/api/instances/${this.id}/logs?offset=0&limit=6000`, {

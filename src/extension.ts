@@ -4,7 +4,7 @@ import { locale } from 'dayjs';
 import * as vscode from 'vscode';
 import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
-import { InstancesProvider } from './instances';
+import { InstancesProvider, Instance } from './instances';
 
 const fs = require("fs")
 const path = require("path")
@@ -199,9 +199,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(deleteWorkflow)
 
-	let cancelInstance = vscode.commands.registerCommand("direktiv.cancelInstance", async(uri: vscode.Uri)=>{
-		console.log("uri =", uri)
-		return
+	let cancelInstance = vscode.commands.registerCommand("direktiv.cancelInstance", async(inst: Instance)=>{
+		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label)
+		await instanceManager.cancelInstance()
 	})
 
 	context.subscriptions.push(cancelInstance)

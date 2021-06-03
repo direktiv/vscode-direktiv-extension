@@ -93,7 +93,7 @@ public manager: Map<string, any>
 
 }
 
-class Instance extends vscode.TreeItem {
+export class Instance extends vscode.TreeItem {
 
   constructor(
     public readonly label: string,
