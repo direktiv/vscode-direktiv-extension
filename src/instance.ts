@@ -99,10 +99,6 @@ export class InstanceManager {
     }
 
     async getLogsForInstance() {
-        console.log("yyyy")
-        console.log(this.url)
-        console.log(this.token)
-        console.log(this.id)
         try {
             // TODO may need to handle pagination at some point.
             let resp = await fetch(`${this.url}/api/instances/${this.id}/logs?offset=0&limit=6000`, {
