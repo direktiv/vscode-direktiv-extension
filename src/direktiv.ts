@@ -70,6 +70,8 @@ export class DirektivManager {
     async CreateWorkflow() {
         let data = fs.readFileSync(this.connection, {encoding:'utf8'});
         let dataParse = yaml.parse(data)
+        let f = this.connection.substr(0, this.connection.lastIndexOf('.'));
+        f = f.substr(0, f.lastIndexOf('.'))
 
         try {
             let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows`, {
@@ -87,6 +89,17 @@ export class DirektivManager {
                 let direktivManifest = fs.readFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), {encoding:'utf8'});
                 let direktivJSON = JSON.parse(direktivManifest)
                 direktivJSON[dataParse.id] = 0
+
+                // rename file as id doesn't match filename
+                if(dataParse.id !== f) {
+                    // id has been changed lets rename the file
+                    fs.renameSync(this.connection, path.join(path.dirname(this.connection), `${dataParse.id}.direktiv.yaml`))
+                    fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktivJSON))
+                    await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+                    let doc = await vscode.workspace.openTextDocument(`${path.join(path.dirname(this.connection), `${dataParse.id}.direktiv.yaml`)}`)
+                    await vscode.window.showTextDocument(doc)
+                }
+
                 fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktivJSON))
             } 
         } catch(e) {

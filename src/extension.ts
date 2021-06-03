@@ -5,26 +5,32 @@ import * as vscode from 'vscode';
 import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
 import { InstancesProvider, Instance } from './instances';
+import { Schema } from './schema';
 
 const fs = require("fs")
 const path = require("path")
 const mkdirp = require("mkdirp")
 const homedir = require("os").homedir()
 
-const schemaFP: string = "SCHEMA_PATH"
+const schemaFP: string = JSON.stringify(Schema)
 
 // Call this whenever you want to append to schema
 function appendSchema() {
-	// Get Config
-	const yamlCfg = vscode.workspace.getConfiguration("yaml")
+	// check if the schema doesnt exist create it
+	if(!fs.existsSync(path.join(homedir, ".direktiv.schema.json"))){
 
-	// Get Schema
-	let yamlSchemas: Object | undefined = yamlCfg.get("schemas")
+		// write schema to file
+		fs.writeFileSync(path.join(homedir, ".direktiv.schema.json"), schemaFP)
+		// Get Config
+		const yamlCfg = vscode.workspace.getConfiguration("yaml")
 
-	// If schema Key does not exists append direktiv schema
-	if (yamlSchemas && !(schemaFP in yamlSchemas)) {
-		console.log(schemaFP + " no exists")
-		yamlCfg.update("schemas", {...yamlSchemas, [schemaFP]: "*.direktiv.yaml"}, 1)
+		// Get Schema
+		let yamlSchemas: Object | undefined = yamlCfg.get("schemas")
+
+		// If schema Key does not exists append direktiv schema
+		if (yamlSchemas && !(schemaFP in yamlSchemas)) {
+			yamlCfg.update("schemas", {...yamlSchemas, [path.join(homedir, ".direktiv.schema.json")]: "*.direktiv.yaml"}, 1)
+		}
 	}
 }
 
@@ -42,15 +48,13 @@ export function activate(context: vscode.ExtensionContext) {
 	// Todo clean up files i made in the deactivate vscode
 	// make all directories
 	let dirpath = path.join("/tmp", ".direktiv")
-
 	mkdirp.sync(dirpath)
+
+	// append json shema to yaml files
+	appendSchema()
                     
 	vscode.window.registerTreeDataProvider('instances', instances);
 
-	appendSchema()
-
-	
-	// let logs = vscode.window.createOutputChannel("Direktiv")
 	let openLogs = vscode.commands.registerCommand("direktiv.openLogs", async(instance: Instance)=>{
 		console.log(instance)
 		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label)
