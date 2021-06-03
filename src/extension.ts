@@ -169,24 +169,15 @@ export function activate(context: vscode.ExtensionContext) {
 				const instanceManager = new InstanceManager(json.url, jsonToken[json.url], id)
 				await instanceManager.createTempFile()
 				await instanceManager.openLogs()
-				vscode.window.withProgress({location: vscode.ProgressLocation.Notification, title: 'Waiting for Instance Completion', cancellable: true}, async (p, token)=>{
-					token.onCancellationRequested(async () => {
-						console.log("User canceled the long running operation");
-						await instanceManager.cancelInstance()
-					});
-					p.report({increment: 0})
-					let timer = setInterval(async ()=>{
-						let status = await instanceManager.getInstanceStatus()
-						if (status !== "pending"){
-							setTimeout(()=>{
-								p.report({increment: 100})	
-								clearInterval(timer)			
-							},4000)
-						} 
-					},2000)
-			
+				let timer = setInterval(async()=>{
+					let status = await instanceManager.getInstanceStatus()
+					if (status !== "pending"){
+						setTimeout(()=>{
+							clearInterval(timer)			
+						},4000)
+					} 
 					await instanceManager.getLogsForInstance()
-				})
+				},2000)
 			}
 
 		} else {
