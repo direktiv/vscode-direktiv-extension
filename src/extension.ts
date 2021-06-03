@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
 import { InstancesProvider, Instance } from './instances';
+import {debugConections} from "./debug"
 import { Schema } from './schema';
 
 const fs = require("fs")
@@ -101,11 +102,11 @@ export function activate(context: vscode.ExtensionContext) {
 		// }
 
 		// TODO remove when completed only for testing
-		let url = "https://oz.direktiv.io"
-		let namespace = "trent"
-		let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0b2tlbi1iNzFmMjBkYS01ODc3LTQzNmItOGNmMS04MWU4MDY4YzFmNmIiLCJncm91cHMiOlsidG9rZW4tYjcxZjIwZGEtNTg3Ny00MzZiLThjZjEtODFlODA2OGMxZjZiIl0sImV4cCI6MTkzNzc4MDU3OCwiaXNzIjoiZGlyZWt0aXYifQ.MplLYyL2wK2D5fQfP1Xi9YiuuiRwusTD80CslTp-gnQ"
+		for (const debugConn of debugConections) {
+			instances.add(debugConn.url, debugConn.token, debugConn.namespace)
+		}
 	
-		instances.add(url, token, namespace)
+		// instances.add(url, token, namespace)
 		// vscode.window.createTreeView("instances", {
 		// 	treeDataProvider: new InstancesProvider(url, token, namespace)
 		// })
@@ -243,8 +244,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(cancelInstance)
 
-	let removeInstancesManager = vscode.commands.registerCommand("direktiv.removeInstanceManager", async(inst: any)=>{
-		console.log("inst =", inst)
+	let removeInstancesManager = vscode.commands.registerCommand("direktiv.removeInstanceManager", async(inst: Instance)=>{
+		instances.remove(inst.label)
 	})
 
 	context.subscriptions.push(removeInstancesManager)

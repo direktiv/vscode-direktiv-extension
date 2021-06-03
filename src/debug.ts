@@ -1,0 +1,4 @@
+export const debugConections = [
+    {url: "https://oz.direktiv.io", namespace: "trent",token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0b2tlbi1iNzFmMjBkYS01ODc3LTQzNmItOGNmMS04MWU4MDY4YzFmNmIiLCJncm91cHMiOlsidG9rZW4tYjcxZjIwZGEtNTg3Ny00MzZiLThjZjEtODFlODA2OGMxZjZiIl0sImV4cCI6MTkzNzc4MDU3OCwiaXNzIjoiZGlyZWt0aXYifQ.MplLYyL2wK2D5fQfP1Xi9YiuuiRwusTD80CslTp-gnQ"},
+    {url: "https://playground.direktiv.io", namespace: "jon", token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0b2tlbi00YmM3MDllMS00NjdjLTQzZmQtODMzYi1jZTcxYmM0NDczNDUiLCJncm91cHMiOlsidG9rZW4tNGJjNzA5ZTEtNDY3Yy00M2ZkLTgzM2ItY2U3MWJjNDQ3MzQ1Il0sImV4cCI6MTkzODExODcyMSwiaXNzIjoiZGlyZWt0aXYifQ.7wzJpGiFbMCWsDiWsldeYhkBm2bXErYKcFjccYYExrc"}
+]
