@@ -254,6 +254,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
+
 	// TODO handle "/tmp" to be os friendly
 	fs.rmdirSync(path.join("/tmp", ".direktiv"), { recursive: true });
 }

@@ -1,70 +1,24 @@
-# direktiv README
+# Direktiv Support by vorteil.io
 
-This is the README for your extension "direktiv". After writing up a brief description, we recommend including the following sections.
+Provides comprehensive Direktiv support to Visual Studio Code, via the use of YAML validation and REST api request to manage a remote Direktiv server.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- YAML Linting for Workflow input (provided by the [YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) and our custom JSON Schema.)
+  - Detects invalid inputs
+  - Offers suggestions for what to fill in
+  - Provides auto-completion
+- Workflows
+  - Upload YAML file to remote Direktiv
+  - Update YAML file to remote Direktiv
+  - Execute Remote Workflow on Direktiv
+  - Delete YAML file locally and remotely on Direktiv
+- Namespaces
+  - Contextually download all workflows to a folder 
+- Activity Bar Direktiv
+  - The ability to add multiple servers to view the Instances that have been run on Direktiv
 
-For example if there is an image subfolder under your extension project workspace:
+## How To
 
-\!\[feature X\]\(images/feature-x.png\)
+In order to use any actions on the Workflow level you need to download all workflows from a namespace remotely to folder which will create a '.direktiv.manifest.json' file which contains details on what to do with the 'YAML' files on each action. 
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-We require the use of the YAML extension. This will get prompted to install when you try execute Direktiv related actions. Or you can install this extension
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
