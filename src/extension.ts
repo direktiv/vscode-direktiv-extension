@@ -209,7 +209,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(deleteWorkflow)
 
 	let cancelInstance = vscode.commands.registerCommand("direktiv.cancelInstance", async(inst: Instance)=>{
-		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label)
+		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label, undefined)
 		await instanceManager.cancelInstance()
 	})
 
