@@ -8,6 +8,7 @@ import { InstancesProvider, Instance } from './instances';
 
 const fs = require("fs")
 const path = require("path")
+const mkdirp = require("mkdirp")
 const homedir = require("os").homedir()
 
 const schemaFP: string = "SCHEMA_PATH"
@@ -37,6 +38,13 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "direktiv" is now active!');
 
 	let instances = new InstancesProvider()
+
+                    // Todo clean up files i made in the deactivate vscode
+                    // make all directories
+                    let dirpath = path.join("/tmp", ".direktiv")
+
+                    mkdirp.sync(dirpath)
+                    
 	vscode.window.registerTreeDataProvider('instances', instances);
 
 	appendSchema()
@@ -49,6 +57,19 @@ export function activate(context: vscode.ExtensionContext) {
 		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label, undefined)
 		// await instanceManager.waitForInstanceCompletion()
 		await instanceManager.getLogsForInstance()
+		let status = await instanceManager.getInstanceStatus()
+		if (status === "pending") {
+			let pollForNotPending = setInterval(async()=>{
+				status = await instanceManager.getInstanceStatus()
+				if (status !== "pending"){
+					setTimeout(()=>{
+						clearInterval(pollForNotPending)					
+					},4000)
+				} 
+				await instanceManager.getLogsForInstance()
+			},2000)
+		}
+		console.log('status of instance', status)
 	})
 
 	context.subscriptions.push(openLogs)

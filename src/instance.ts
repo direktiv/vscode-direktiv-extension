@@ -74,6 +74,26 @@ export class InstanceManager {
         });
     }
     
+    async getInstanceStatus(): Promise<string> {
+        try {
+            let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.token}`
+                }
+            })
+            if(!resp.ok) {
+                await this.handleError(resp, "Get Instance", "getInstance")
+            } else {
+                let json = await resp.json()
+                return json.status
+            }
+        } catch(e) {
+            vscode.window.showErrorMessage(e.message)
+        }
+        return ""
+    }
+
     async getInstanceDetails(resolve: any, reject: any) {
         try {
             let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
@@ -108,8 +128,6 @@ export class InstanceManager {
                 }
             })
             if(!resp.ok) {
-        console.log("yyyyfffff")
-
                 await this.handleError(resp, "Get Logs", "getLogs")
             } else {
                 let json = await resp.json()
@@ -128,20 +146,13 @@ export class InstanceManager {
                         str += `[${time}] ${json.workflowInstanceLogs[i].message}\n`
                     }
 
-                    // Todo clean up files i made in the deactivate vscode
-                    // make all directories
-                    let dirpath = path.join("/tmp", ".direktiv")
-
-                    mkdirp.sync(dirpath)
-                    
-
+                    let fpath = path.join("/tmp",".direktiv", this.id.replace(replacer, "-"))
                     // write file to directory
-                    fs.writeFileSync(path.join(dirpath, this.id.replace(replacer, "-")), str)
+                    fs.writeFileSync(fpath, str)
 
                     // open str in vscode window
-                    let td = await vscode.workspace.openTextDocument(path.join(dirpath, this.id.replace(replacer, "-")))
+                    let td = await vscode.workspace.openTextDocument(fpath)
                     await vscode.window.showTextDocument(td, {preview: false})
-                    
                 }
             }
         } catch(e) {
