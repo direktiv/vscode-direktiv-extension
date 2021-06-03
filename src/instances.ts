@@ -109,6 +109,13 @@ export class Instance extends vscode.TreeItem {
         this.iconPath = !isRoot ? {
           light: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg'),
           dark: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg')
-      } : undefined
+        } : undefined
+        // command to open the text editor
+        this.command = !isRoot ? {
+          "command": "direktiv.openLogs",
+          "title": "Open Logs",
+          "tooltip": "Open Logs",
+          "arguments": [this]
+        }: undefined
   }
 }

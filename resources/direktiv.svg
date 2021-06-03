@@ -1,47 +1,23 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   version="1.1"
-   id="svg2"
-   xml:space="preserve"
-   width="800"
-   height="800"
-   viewBox="0 0 800 800"
-   sodipodi:docname="DirektivLogo_Symbol.ai"><metadata
-     id="metadata8"><rdf:RDF><cc:Work
-         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
-     id="defs6"><clipPath
-       clipPathUnits="userSpaceOnUse"
-       id="clipPath18"><path
-         d="M 0,600 H 600 V 0 H 0 Z"
-         id="path16" /></clipPath></defs><sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="640"
-     inkscape:window-height="480"
-     id="namedview4" /><g
-     id="g10"
-     inkscape:groupmode="layer"
-     inkscape:label="DirektivLogo_Symbol"
-     transform="matrix(1.3333333,0,0,-1.3333333,0,800)"><g
-       id="g12"><g
-         id="g14"
-         clip-path="url(#clipPath18)"><g
-           id="g20"
-           transform="translate(426.8301,299.0801)"><path
-             d="m 0,0 c -8.673,0 -15.728,7.055 -15.728,15.727 0,8.671 7.055,15.727 15.728,15.727 8.671,0 15.727,-7.056 15.727,-15.727 C 15.727,7.055 8.671,0 0,0 m -209.734,-126.035 h -31.453 v 31.453 h 31.453 z M 43.499,15.727 c 0,21.547 -15.765,39.437 -36.355,42.861 -18.144,56.247 -70.974,97.06 -133.18,97.06 H -239.347 V 10.738 l -18.174,18.174 -19.638,-19.638 51.699,-51.699 51.698,51.698 -19.638,19.639 -18.174,-18.174 v 117.137 h 85.538 c 48.4,0 89.627,-30.87 105.307,-73.914 C -34.281,46.584 -43.5,32.212 -43.5,15.727 c 0,-16.495 9.228,-30.873 22.792,-38.247 -15.681,-43.043 -56.929,-73.902 -105.328,-73.902 h -55.925 v 29.613 h -86.999 v -87 h 86.999 v 29.614 h 55.925 c 62.182,0 114.899,40.827 133.061,97.043 20.65,3.375 36.474,21.29 36.474,42.879"
-             style="fill:#4293c4;fill-opacity:1;fill-rule:nonzero;stroke:none"
-             id="path22" /></g></g></g></g></svg>
+<svg version="1.2" baseProfile="tiny-ps" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+	<title>direktiv-svg</title>
+	<defs>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp1">
+			<path d="M-234 -234L1034 -234L1034 1034L-234 1034L-234 -234Z" />
+		</clipPath>
+	</defs>
+	<style>
+		tspan { white-space:pre }
+		.shp0 { fill: #2d2d30 } 
+	</style>
+	<g id="g10">
+		<g id="g12">
+			<g id="Clip-Path: g14" clip-path="url(#cp1)">
+				<g id="g14">
+					<g id="g20">
+						<path id="path22" fill-rule="evenodd" class="shp0" d="M759.96 368.71C759.96 414.33 726.52 452.19 682.88 459.33C644.5 578.13 533.09 664.41 401.68 664.41L283.49 664.41L283.49 726.99L99.63 726.99L99.63 543.13L283.49 543.13L283.49 605.72L401.68 605.72C503.96 605.72 591.13 540.5 624.27 449.54C595.61 433.95 576.1 403.57 576.1 368.71C576.1 333.87 595.59 303.5 624.23 287.91C591.09 196.94 503.96 131.7 401.68 131.7L220.91 131.7L220.91 379.25L259.32 340.84L300.82 382.35L191.56 491.6L82.3 382.34L123.81 340.84L162.21 379.25L162.21 73.01L401.68 73.01C533.14 73.01 644.79 159.26 683.13 278.13C726.65 285.36 759.96 323.17 759.96 368.71ZM224.8 601.83L158.33 601.83L158.33 668.3L224.8 668.3L224.8 601.83ZM701.27 368.71C701.27 350.38 686.36 335.47 668.03 335.47C649.71 335.47 634.8 350.38 634.8 368.71C634.8 387.03 649.71 401.94 668.03 401.94C686.36 401.94 701.27 387.03 701.27 368.71Z" />
+					</g>
+				</g>
+			</g>
+		</g>
+	</g>
+</svg>

@@ -44,6 +44,15 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	let logs = vscode.window.createOutputChannel("Direktiv")
 
+	let openLogs = vscode.commands.registerCommand("direktiv.openLogs", async(instance: Instance)=>{
+		console.log(instance)
+		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label, undefined)
+		// await instanceManager.waitForInstanceCompletion()
+		await instanceManager.getLogsForInstance()
+	})
+
+	context.subscriptions.push(openLogs)
+
 	let refreshInstanceManager = vscode.commands.registerCommand("direktiv.refreshInstances", async()=>{
 		instances.refresh()
 	})
@@ -200,7 +209,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(deleteWorkflow)
 
 	let cancelInstance = vscode.commands.registerCommand("direktiv.cancelInstance", async(inst: Instance)=>{
-		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label)
+		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label, undefined)
 		await instanceManager.cancelInstance()
 	})
 
@@ -209,4 +218,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	// TODO handle "/tmp" to be os friendly
+	fs.rmdirSync(path.join("/tmp", ".direktiv"), { recursive: true });
+}
