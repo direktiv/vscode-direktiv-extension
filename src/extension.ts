@@ -215,6 +215,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(cancelInstance)
 
+	let removeInstancesManager = vscode.commands.registerCommand("direktiv.removeInstanceManager", async(inst: any)=>{
+		console.log("inst =", inst)
+	})
+
+	context.subscriptions.push(removeInstancesManager)
+
 }
 
 // this method is called when your extension is deactivated

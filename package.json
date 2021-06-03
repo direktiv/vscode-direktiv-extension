@@ -52,6 +52,10 @@
 				"command": "direktiv.addInstanceManager"
 			},
 			{
+				"title": "Remove Direktiv Service",
+				"command": "direktiv.removeInstanceManager"
+			},
+			{
 				"title": "Download Workflows",
 				"command": "direktiv.connect"
 			},
@@ -92,6 +96,10 @@
 				{
 					"command": "direktiv.cancelInstance",
 					"when": "viewItem == instance"
+				},
+				{
+					"command": "direktiv.removeInstanceManager",
+					"when": "viewItem == instances"
 				}
 			],
 			"explorer/context": [
