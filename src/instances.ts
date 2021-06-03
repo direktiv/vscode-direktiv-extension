@@ -7,13 +7,15 @@ export class InstancesProvider implements vscode.TreeDataProvider<Instance> {
 //   public url
 //   public token
 
+
+// manages each connection
 public manager: Map<string, any>
 
   constructor() {
     //   this.namespace = namespace
     //   this.url = url
     //   this.token = token
-    this.manager = new Map()    
+    this.manager = new Map()   
   }
   
   private _onDidChangeTreeData: vscode.EventEmitter<Instance | undefined | null | void> = new vscode.EventEmitter<Instance | undefined | null | void>();
@@ -49,7 +51,6 @@ public manager: Map<string, any>
 
   getChildren(element?: Instance): Thenable<Instance[]> {
     if(element) {
-        console.log(element)
         let url = element.label.substr(0, element.label.lastIndexOf(`/${element.values.namespace}`))
         return Promise.resolve(this.getInstancesForNamespace(url, element.values.token, element.values.namespace))
     } else {

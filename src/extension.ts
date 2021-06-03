@@ -20,7 +20,7 @@ function appendSchema() {
 	// Get Schema
 	let yamlSchemas: Object | undefined = yamlCfg.get("schemas")
 
-	// If scehma Key does not exists append direktiv schema
+	// If schema Key does not exists append direktiv schema
 	if (yamlSchemas && !(schemaFP in yamlSchemas)) {
 		console.log(schemaFP + " no exists")
 		yamlCfg.update("schemas", {...yamlSchemas, [schemaFP]: "*.direktiv.yaml"}, 1)
@@ -43,6 +43,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	
 	let logs = vscode.window.createOutputChannel("Direktiv")
+
+	let refreshInstanceManager = vscode.commands.registerCommand("direktiv.refreshInstances", async()=>{
+		instances.refresh()
+	})
+	
+	context.subscriptions.push(refreshInstanceManager)
 
 	let addInstanceManager = vscode.commands.registerCommand("direktiv.addInstanceManager", async()=>{
 		// The code you place here will be executed every time your command is executed
