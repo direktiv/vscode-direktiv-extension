@@ -39,24 +39,26 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let instances = new InstancesProvider()
 
-                    // Todo clean up files i made in the deactivate vscode
-                    // make all directories
-                    let dirpath = path.join("/tmp", ".direktiv")
+	// Todo clean up files i made in the deactivate vscode
+	// make all directories
+	let dirpath = path.join("/tmp", ".direktiv")
 
-                    mkdirp.sync(dirpath)
+	mkdirp.sync(dirpath)
                     
 	vscode.window.registerTreeDataProvider('instances', instances);
 
 	appendSchema()
 
 	
-	let logs = vscode.window.createOutputChannel("Direktiv")
-
+	// let logs = vscode.window.createOutputChannel("Direktiv")
 	let openLogs = vscode.commands.registerCommand("direktiv.openLogs", async(instance: Instance)=>{
 		console.log(instance)
-		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label, undefined)
+		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label)
 		// await instanceManager.waitForInstanceCompletion()
+		await instanceManager.createTempFile()
 		await instanceManager.getLogsForInstance()
+		await instanceManager.openLogs()
+		
 		let status = await instanceManager.getInstanceStatus()
 		if (status === "pending") {
 			let pollForNotPending = setInterval(async()=>{
@@ -164,15 +166,26 @@ export function activate(context: vscode.ExtensionContext) {
 
 			if(id !== "") {
 				// todo handle logging and other details
-				const instanceManager = new InstanceManager(json.url, jsonToken[json.url], id, logs)
+				const instanceManager = new InstanceManager(json.url, jsonToken[json.url], id)
+				await instanceManager.createTempFile()
+				await instanceManager.openLogs()
 				vscode.window.withProgress({location: vscode.ProgressLocation.Notification, title: 'Waiting for Instance Completion', cancellable: true}, async (p, token)=>{
 					token.onCancellationRequested(async () => {
 						console.log("User canceled the long running operation");
 						await instanceManager.cancelInstance()
 					});
 					p.report({increment: 0})
-					await instanceManager.waitForInstanceCompletion()					
-					p.report({increment: 100})
+					let timer = setInterval(async ()=>{
+						let status = await instanceManager.getInstanceStatus()
+						if (status !== "pending"){
+							setTimeout(()=>{
+								p.report({increment: 100})	
+								clearInterval(timer)			
+							},4000)
+						} 
+					},2000)
+			
+					await instanceManager.getLogsForInstance()
 				})
 			}
 
@@ -230,8 +243,9 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(deleteWorkflow)
 
 	let cancelInstance = vscode.commands.registerCommand("direktiv.cancelInstance", async(inst: Instance)=>{
-		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label, undefined)
+		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label)
 		await instanceManager.cancelInstance()
+		instances.refresh()
 	})
 
 	context.subscriptions.push(cancelInstance)
