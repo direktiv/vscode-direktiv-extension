@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 const fetch = require("node-fetch")
+const path = require("path")
 
 export class InstancesProvider implements vscode.TreeDataProvider<Instance> {
 
@@ -57,7 +58,8 @@ public manager: Map<string, any>
         let arr: Array<Instance> = []
         if (this.manager.size > 0){
             this.manager.forEach((v, k)=>{
-                arr.push(new Instance(`${k}/${v.namespace}`, v, vscode.TreeItemCollapsibleState.Collapsed))
+                // Root Element
+                arr.push(new Instance(`${k}/${v.namespace}`, v, vscode.TreeItemCollapsibleState.Collapsed, true))
             })
         }  
         return Promise.resolve(arr)
@@ -80,7 +82,7 @@ public manager: Map<string, any>
             let arr = []
             if(json.workflowInstances) {
                 for(let i=0; i < json.workflowInstances.length; i++) {
-                    arr.push(new Instance(json.workflowInstances[i].id, {url: url, token: token, namespace: namespace}, vscode.TreeItemCollapsibleState.None, true))
+                    arr.push(new Instance(json.workflowInstances[i].id, {url: url, token: token, namespace: namespace, status: json.workflowInstances[i].status}, vscode.TreeItemCollapsibleState.None))
                 }
             }
             return arr
@@ -99,14 +101,28 @@ export class Instance extends vscode.TreeItem {
     public readonly label: string,
     public readonly values: any,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly isRoot: boolean = false
+    public readonly isRoot: boolean = false,
   ) {
     super(label, collapsibleState);
         this.tooltip = `${this.label}`;
-        this.contextValue = isRoot ? "instance" : undefined;
+        this.contextValue = !isRoot ? "instance" : undefined;
+
+        // Initial Icon Selection
+        if (values.status && !isRoot) {
+          console.log("values.status =", values.status)
+          this.iconPath = {
+            light: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`),
+            dark: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`)
+          }
+        } else if (!isRoot) {
+          this.iconPath = {
+            light: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg'),
+            dark: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg')
+          }
+        }
 
         // command to open the text editor
-        this.command = isRoot ? {
+        this.command = !isRoot ? {
           "command": "direktiv.openLogs",
           "title": "Open Logs",
           "tooltip": "Open Logs",

@@ -1,0 +1,8 @@
+<svg version="1.2" baseProfile="tiny-ps" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+	<title>ellipse-svg</title>
+	<style>
+		tspan { white-space:pre }
+		.shp0 { fill: #dc3545 } 
+	</style>
+	<path id="Layer" class="shp0" d="M256 442.95C152.92 442.95 69.05 359.08 69.05 256C69.05 152.92 152.92 69.05 256 69.05C359.08 69.05 442.95 152.92 442.95 256C442.95 359.08 359.08 442.95 256 442.95Z" />
+</svg>
