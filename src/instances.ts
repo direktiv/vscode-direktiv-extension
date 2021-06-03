@@ -82,7 +82,7 @@ public manager: Map<string, any>
             let arr = []
             if(json.workflowInstances) {
                 for(let i=0; i < json.workflowInstances.length; i++) {
-                    arr.push(new Instance(json.workflowInstances[i].id, {url: url, token: token, namespace: namespace}, vscode.TreeItemCollapsibleState.None))
+                    arr.push(new Instance(json.workflowInstances[i].id, {url: url, token: token, namespace: namespace, status: json.workflowInstances[i].status}, vscode.TreeItemCollapsibleState.None))
                 }
             }
             return arr
@@ -106,10 +106,21 @@ export class Instance extends vscode.TreeItem {
     super(label, collapsibleState);
         this.tooltip = `${this.label}`;
         this.contextValue = !isRoot ? "instance" : undefined;
-        this.iconPath = !isRoot ? {
-          light: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg'),
-          dark: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg')
-        } : undefined
+
+        // Initial Icon Selection
+        if (values.status && !isRoot) {
+          console.log("values.status =", values.status)
+          this.iconPath = {
+            light: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`),
+            dark: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`)
+          }
+        } else if (!isRoot) {
+          this.iconPath = {
+            light: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg'),
+            dark: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg')
+          }
+        }
+
         // command to open the text editor
         this.command = !isRoot ? {
           "command": "direktiv.openLogs",
