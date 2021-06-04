@@ -5,11 +5,11 @@ import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
 import { InstancesProvider, Instance } from './instances';
 import { GetInput, appendSchema, readManifest } from './util';
+import {debugConections} from "./debug"
 
 const fs = require("fs")
 const path = require("path")
 const mkdirp = require("mkdirp")
-const homedir = require("os").homedir()
 
 export const manifestDirektiv = ".direktiv.manifest.json"
 // this method is called when your extension is activated
@@ -163,6 +163,13 @@ export function activate(context: vscode.ExtensionContext) {
 	})
 
 	context.subscriptions.push(cancelInstance)
+
+	let removeInstancesManager = vscode.commands.registerCommand("direktiv.removeInstanceManager", async(inst: Instance)=>{
+		instances.remove(inst.label)
+	})
+
+	context.subscriptions.push(removeInstancesManager)
+
 }
 
 // this method is called when your extension is deactivated

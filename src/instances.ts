@@ -25,6 +25,11 @@ public manager: Map<string, any>
     this.refresh()
   }
 
+  remove(serviceKey: string) {
+    this.manager.delete(serviceKey)
+    this.refresh()
+  }
+
   getTreeItem(element: Instance): vscode.TreeItem {
     return element;
   }
@@ -84,7 +89,7 @@ export class Instance extends vscode.TreeItem {
   ) {
     super(label, collapsibleState);
         this.tooltip = `${this.label}`;
-        this.contextValue = !isRoot ? "instance" : undefined;
+        this.contextValue = !isRoot ? "instance" : "instances";
 
         // Initial Icon Selection
         if (values.status && !isRoot) {
