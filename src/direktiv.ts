@@ -1,11 +1,11 @@
 import * as vscode from "vscode"
+import {handleError} from "./util"
 
 const fetch = require("node-fetch")
 const path = require("path")
 const fs = require("fs")
 const yaml = require("yaml")
 const homedir = require('os').homedir();
-
 
 export class DirektivManager {
     public url
@@ -29,26 +29,15 @@ export class DirektivManager {
         this.connection = uri.path.toString()
     }
 
-    async handleError(resp: any, summary: string, perm: string) {
-        const contentType = resp.headers.get('content-type');
-        if(resp.status !== 403) {
-            if (!contentType || !contentType.includes('application/json')) {
-                let text = await resp.text()
-                throw new Error (`${summary}: ${text}`)
-            } else {
-                let text = (await resp.json()).Message
-                throw new Error (`${summary}: ${text}`)
-            }
-        } else {
-            throw new Error(`You are unable to '${summary}', contact system admin or namespace owner to grant '${perm}'.`)
-        }
-    }
-
-    async DeleteWorkflow() {
+    getID() {
         var x = path.basename(this.connection);
         let f = x.substr(0, x.lastIndexOf('.'));
         f = f.substr(0, f.lastIndexOf('.'))
+        return f
+    }
 
+    async DeleteWorkflow() {
+        let f = this.getID()
         try {
             let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${f}`, {
                 method: "DELETE",
@@ -57,10 +46,11 @@ export class DirektivManager {
                 }
             })
             if (!resp.ok) {
-                await this.handleError(resp, "Delete Workflow", "deleteWorkflow")
+                await handleError(resp, "Delete Workflow", "deleteWorkflow")
             } else {
                 // delete file locally :)
                 fs.unlinkSync(this.connection)
+                vscode.window.showInformationMessage(`Successfully deleted ${f} locally and remotely.`)
             }
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
@@ -83,37 +73,26 @@ export class DirektivManager {
                 body: data
             })
             if (!resp.ok) {
-                await this.handleError(resp, "Create Workflow", "createWorkflow")
+                await handleError(resp, "Create Workflow", "createWorkflow")
             } else {
                 // successfully uploaded change local manifest to have that revision
                 let direktivManifest = fs.readFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), {encoding:'utf8'});
                 let direktivJSON = JSON.parse(direktivManifest)
                 direktivJSON[dataParse.id] = 0
 
-                // rename file as id doesn't match filename
-                if(dataParse.id !== f) {
-                    // id has been changed lets rename the file
-                    fs.renameSync(this.connection, path.join(path.dirname(this.connection), `${dataParse.id}.direktiv.yaml`))
-                    fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktivJSON))
-                    await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
-                    let doc = await vscode.workspace.openTextDocument(`${path.join(path.dirname(this.connection), `${dataParse.id}.direktiv.yaml`)}`)
-                    await vscode.window.showTextDocument(doc)
-                }
+                await this.checkFileNeedsChanged(dataParse, f, direktivJSON)
 
                 fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktivJSON))
+
+                vscode.window.showInformationMessage("Successfully created new Workflow remotely.")
             } 
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
         }
-
-
     }
 
     async ExecuteWorkflow(): Promise<string> {
-        var x = path.basename(this.connection);
-        let f = x.substr(0, x.lastIndexOf('.'));
-        f = f.substr(0, f.lastIndexOf('.'))
-
+        let f = this.getID()
         try {
             let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${f}/execute`,{
                 method: "POST",
@@ -122,7 +101,7 @@ export class DirektivManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, "Execute Workflow", "invokeWorkflow")
+                await handleError(resp, "Execute Workflow", "invokeWorkflow")
             } else {
                 let json = await resp.json()
                 return json.instanceId
@@ -147,16 +126,20 @@ export class DirektivManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, 'Update Workflow', "updateWorkflow")
+                await handleError(resp, 'Update Workflow', "updateWorkflow")
             } else {
                 // Update revision locally as update was successful
                 direktiv[f] = direktiv[f] + 1
                 fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktiv))
+                vscode.window.showInformationMessage(`Successfully updated ${f} remotely.`)
             }
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
         }
+        await this.checkFileNeedsChanged(dataParse, f, direktiv)
+    }
 
+    async checkFileNeedsChanged(dataParse: any, f: string, direktiv: any) {
         if(dataParse.id !== f) {
             // id has been changed lets rename the file
             fs.renameSync(this.connection, path.join(path.dirname(this.connection), `${dataParse.id}.direktiv.yaml`))
@@ -174,9 +157,7 @@ export class DirektivManager {
     }
 
     async UpdateWorkflow() {
-        var x = path.basename(this.connection);
-        let f = x.substr(0, x.lastIndexOf('.'));
-        f = f.substr(0, f.lastIndexOf('.'))
+        let f = this.getID()
 
         // read the .direktiv file to get revision
         let direktiv = fs.readFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), {encoding: "utf8"})
@@ -205,7 +186,7 @@ export class DirektivManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, 'Fetch Workflows', "getWorkflows")
+                await handleError(resp, 'Fetch Workflows', "getWorkflows")
             } else {
                 let json = await resp.json()
 
@@ -217,7 +198,6 @@ export class DirektivManager {
                 await this.ExportNamespace()
             }
         } catch(e) {
-            // TODO show error message
             vscode.window.showErrorMessage(e.message)
         }
         return []
@@ -232,7 +212,7 @@ export class DirektivManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, "Fetch Workflow", "getWorkflow")
+                await handleError(resp, "Fetch Workflow", "getWorkflow")
             } else {
                 let json = await resp.json()
                 return json.revision
@@ -252,14 +232,13 @@ export class DirektivManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, 'Fetch Workflows', "getWorkflows")
+                await handleError(resp, 'Fetch Workflows', "getWorkflows")
             } else {
                 let json = await resp.json()
                 this.workflowRevisions.set(wf, json.revision)
                 return Buffer.from(json.workflow, 'base64').toString("ascii")
             }
         }catch(e) {
-            // TODO show error message
             vscode.window.showErrorMessage(e.message)
         }
         return ""

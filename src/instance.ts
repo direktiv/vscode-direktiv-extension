@@ -1,14 +1,13 @@
 import * as vscode from "vscode"
+import { handleError } from "./util"
 
 const fetch = require("node-fetch")
-const mkdirp = require("mkdirp")
 const path = require("path")
 const fs = require('fs')
 const dayjs = require('dayjs')
 
 const search = '/'  
 const replacer = new RegExp(search, 'g')
-
 
 export class InstanceManager {
     public id 
@@ -27,21 +26,6 @@ export class InstanceManager {
         this.fpath = ""
     }
 
-    async handleError(resp: any, summary: string, perm: string) {
-        const contentType = resp.headers.get('content-type');
-        if(resp.status !== 403) {
-            if (!contentType || !contentType.includes('application/json')) {
-                let text = await resp.text()
-                throw new Error (`${summary}: ${text}`)
-            } else {
-                let text = (await resp.json()).Message
-                throw new Error (`${summary}: ${text}`)
-            }
-            } else {
-                throw new Error(`You are unable to '${summary}', contact system admin or namespace owner to grant '${perm}'.`)
-            }
-    }
-
     async cancelInstance() {
         try {
             let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
@@ -51,7 +35,7 @@ export class InstanceManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, "Cancel Instance", "cancelInstance")
+                await handleError(resp, "Cancel Instance", "cancelInstance")
             } else {
                 clearInterval(this.timer)
             }
@@ -60,14 +44,6 @@ export class InstanceManager {
         }
     }
 
-    async waitForInstanceCompletion() {
-        return await new Promise((resolve, reject) => {
-            this.timer = setInterval(() => {
-                this.getInstanceDetails(resolve, reject)
-            }, 1000);
-        });
-    }
-    
     async getInstanceStatus(): Promise<string> {
         try {
             let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
@@ -77,7 +53,7 @@ export class InstanceManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, "Get Instance", "getInstance")
+                await handleError(resp, "Get Instance", "getInstance")
             } else {
                 let json = await resp.json()
                 return json.status
@@ -97,7 +73,7 @@ export class InstanceManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, "Get Instance", "getInstance")
+                await handleError(resp, "Get Instance", "getInstance")
             } else {
                 let json = await resp.json()
                 if(json.status !== "pending") {
@@ -116,7 +92,6 @@ export class InstanceManager {
         this.fpath = fpath
       
         fs.writeFileSync(this.fpath, " ")
-       
     }
 
     async openLogs(){
@@ -135,7 +110,7 @@ export class InstanceManager {
                 }
             })
             if(!resp.ok) {
-                await this.handleError(resp, "Get Logs", "getLogs")
+                await handleError(resp, "Get Logs", "getLogs")
             } else {
                 let json = await resp.json()
                 // open the files temp for logs as this is coming from the activity bar 

@@ -1,21 +1,14 @@
 import * as vscode from 'vscode';
+import { handleError } from './util';
 const fetch = require("node-fetch")
 const path = require("path")
 
 export class InstancesProvider implements vscode.TreeDataProvider<Instance> {
 
-//   public namespace
-//   public url
-//   public token
-
-
 // manages each connection
 public manager: Map<string, any>
 
   constructor() {
-    //   this.namespace = namespace
-    //   this.url = url
-    //   this.token = token
     this.manager = new Map()   
   }
   
@@ -26,20 +19,6 @@ public manager: Map<string, any>
     this._onDidChangeTreeData.fire();
   }
 
-  async handleError(resp: any, summary: string, perm: string) {
-        const contentType = resp.headers.get('content-type');
-        if(resp.status !== 403) {
-            if (!contentType || !contentType.includes('application/json')) {
-                let text = await resp.text()
-                throw new Error (`${summary}: ${text}`)
-            } else {
-                let text = (await resp.json()).Message
-                throw new Error (`${summary}: ${text}`)
-            }
-        } else {
-            throw new Error(`You are unable to '${summary}', contact system admin or namespace owner to grant '${perm}'.`)
-        }
-    }
 
   add(url: string, token: string, namespace: string) {
     this.manager.set(`${url}/${namespace}`, {namespace: namespace, token: token})
@@ -76,7 +55,7 @@ public manager: Map<string, any>
             }
         })
         if(!resp.ok) {
-            await this.handleError(resp, "List Instances", "listInstances")
+            await handleError(resp, "List Instances", "listInstances")
         } else {
             let json = await resp.json()
             let arr = []
