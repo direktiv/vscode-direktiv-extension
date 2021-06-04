@@ -146,11 +146,16 @@ export class Instance extends vscode.TreeItem {
             dark: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`)
           }
         } else if (!isRoot) {
-          this.contextValue = `instances`
+          this.contextValue = `instance-unknown`
           this.iconPath = {
             light: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg'),
             dark: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg')
           }
+        }
+
+        // Set context for root
+        if (isRoot) {
+          this.contextValue = `instances`
         }
 
         // command to open the text editor
