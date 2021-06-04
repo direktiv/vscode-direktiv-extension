@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import { handleError } from "./util"
 
+const tempdir = require('os').tmpdir()
 const fetch = require("node-fetch")
 const path = require("path")
 const fs = require('fs')
@@ -88,7 +89,7 @@ export class InstanceManager {
         }
     }
     async createTempFile() {
-        let fpath = path.join("/tmp",".direktiv", this.id.replace(replacer, "-"))
+        let fpath = path.join(tempdir,".direktiv", this.id.replace(replacer, "-"))
         this.fpath = fpath
       
         fs.writeFileSync(this.fpath, " ")

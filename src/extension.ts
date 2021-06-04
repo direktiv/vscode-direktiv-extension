@@ -9,6 +9,7 @@ import { GetInput, appendSchema, readManifest } from './util';
 const fs = require("fs")
 const path = require("path")
 const mkdirp = require("mkdirp")
+const tempdir = require("os").tmpdir()
 
 export const manifestDirektiv = ".direktiv.manifest.json"
 // this method is called when your extension is activated
@@ -26,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Todo clean up files i made in the deactivate vscode
 	// make all directories
-	let dirpath = path.join("/tmp", ".direktiv")
+	let dirpath = path.join(tempdir, ".direktiv")
 	mkdirp.sync(dirpath)
 
 	// append json shema to yaml files
@@ -162,6 +163,5 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
-	// TODO handle "/tmp" to be os friendly
-	fs.rmdirSync(path.join("/tmp", ".direktiv"), { recursive: true });
+	fs.rmdirSync(path.join(tempdir, ".direktiv"), { recursive: true });
 }
