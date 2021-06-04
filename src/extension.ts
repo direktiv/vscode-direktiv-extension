@@ -5,7 +5,6 @@ import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
 import { InstancesProvider, Instance } from './instances';
 import { GetInput, appendSchema, readManifest } from './util';
-import {debugConections} from "./debug"
 
 const fs = require("fs")
 const path = require("path")
@@ -64,18 +63,10 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(refreshInstanceManager)
 
 	let addInstanceManager = vscode.commands.registerCommand("direktiv.addInstanceManager", async()=>{
-		// let input = await GetInput()
-		// if (input === undefined) {
-		// 	return
-		// }
-		
-		// TODO remove when completed only for testing
-		let input = {
-			url: "https://oz.direktiv.io",
-			namespace: "trent",
-			token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0b2tlbi1iNzFmMjBkYS01ODc3LTQzNmItOGNmMS04MWU4MDY4YzFmNmIiLCJncm91cHMiOlsidG9rZW4tYjcxZjIwZGEtNTg3Ny00MzZiLThjZjEtODFlODA2OGMxZjZiIl0sImV4cCI6MTkzNzc4MDU3OCwiaXNzIjoiZGlyZWt0aXYifQ.MplLYyL2wK2D5fQfP1Xi9YiuuiRwusTD80CslTp-gnQ"
+		let input = await GetInput()
+		if (input === undefined) {
+			return
 		}
-	
 		instances.add(input.url, input.token, input.namespace)
 	})
 
@@ -132,18 +123,10 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(executeWorkflow)
 
 	let downloadWorkflows = vscode.commands.registerCommand('direktiv.connect', async (uri: vscode.Uri) => {
-		// let input = await GetInput()
-		// if (input !== undefined) {
-		// 	return
-		// }
-
-		// TODO remove when completed only for testing
-		let input = {
-			url: "https://oz.direktiv.io",
-			namespace: "trent",
-			token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ0b2tlbi1iNzFmMjBkYS01ODc3LTQzNmItOGNmMS04MWU4MDY4YzFmNmIiLCJncm91cHMiOlsidG9rZW4tYjcxZjIwZGEtNTg3Ny00MzZiLThjZjEtODFlODA2OGMxZjZiIl0sImV4cCI6MTkzNzc4MDU3OCwiaXNzIjoiZGlyZWt0aXYifQ.MplLYyL2wK2D5fQfP1Xi9YiuuiRwusTD80CslTp-gnQ"
+		let input = await GetInput()
+		if (input === undefined) {
+			return
 		}
-
 		const manager = new DirektivManager(input.url, input.namespace, input.token, uri)
 		await manager.GetWorkflows()
 	});
@@ -179,8 +162,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
-	console.log("deactivating")
-
 	// TODO handle "/tmp" to be os friendly
 	fs.rmdirSync(path.join("/tmp", ".direktiv"), { recursive: true });
 }
