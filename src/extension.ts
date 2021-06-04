@@ -44,7 +44,10 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "direktiv" is now active!');
 
-	let instances = new InstancesProvider()
+	let instances = new InstancesProvider(context.globalState)
+	
+	// Pull any services from storage
+	instances.syncManagersToStorage()
 
 	// Todo clean up files i made in the deactivate vscode
 	// make all directories
@@ -254,6 +257,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
+	console.log("deactivating")
 
 	// TODO handle "/tmp" to be os friendly
 	fs.rmdirSync(path.join("/tmp", ".direktiv"), { recursive: true });
