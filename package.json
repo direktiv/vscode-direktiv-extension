@@ -1,6 +1,7 @@
 {
 	"name": "direktiv",
 	"displayName": "direktiv",
+	"publisher": "vorteil",
 	"description": "An extension to help use Direktiv",
 	"version": "0.0.1",
 	"engines": {
@@ -95,7 +96,7 @@
 			"view/item/context": [
 				{
 					"command": "direktiv.cancelInstance",
-					"when": "viewItem == instance"
+					"when": "viewItem == instance-pending"
 				},
 				{
 					"command": "direktiv.removeInstanceManager",

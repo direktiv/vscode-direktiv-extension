@@ -1,14 +1,15 @@
 import * as vscode from 'vscode';
 import { handleError } from './util';
-const fetch = require("node-fetch")
-const path = require("path")
+const fetch = require("node-fetch");
+const path = require("path");
 
 export class InstancesProvider implements vscode.TreeDataProvider<Instance> {
 
 // manages each connection
 public manager: Map<string, any>
 
-  constructor() {
+  constructor(private storageContext: vscode.Memento) {
+ 
     this.manager = new Map()   
   }
   
@@ -19,14 +20,40 @@ public manager: Map<string, any>
     this._onDidChangeTreeData.fire();
   }
 
+  public getStorageValue<T>(key : string) : T|undefined{
+    return this.storageContext.get<T|undefined>(key, undefined);
+  }
+
+  // value must be JSON.strinifyable
+  public setStorageValue<T>(key : string, value : T){
+      this.storageContext.update(key, value);
+  }
+
+  // syncManagersToStorage - Syncs any entries from storage to manager, you should run this
+  //  when extension is activated
+  public syncManagersToStorage(){
+    const storageServices = this.getStorageValue<Array<any>>("services")
+
+    // Load storage services if any entries exists
+    if (storageServices !== undefined ) {
+      for (const service of storageServices) {
+        this.manager.set(service[0], service[1])
+      }
+    }
+  }
+
 
   add(url: string, token: string, namespace: string) {
     this.manager.set(`${url}/${namespace}`, {namespace: namespace, token: token})
+    // Update storage
+    this.setStorageValue<any>(`services`, Array.from(this.manager))
     this.refresh()
   }
 
   remove(serviceKey: string) {
     this.manager.delete(serviceKey)
+    // Update storage
+    this.setStorageValue<any>(`services`, Array.from(this.manager))
     this.refresh()
   }
 
@@ -89,19 +116,25 @@ export class Instance extends vscode.TreeItem {
   ) {
     super(label, collapsibleState);
         this.tooltip = `${this.label}`;
-        this.contextValue = !isRoot ? "instance" : "instances";
 
-        // Initial Icon Selection
+        // Initial Icon and ViewItem Context Selection
         if (values.status && !isRoot) {
+          this.contextValue = `instance-${values.status}`
           this.iconPath = {
             light: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`),
             dark: path.join(__filename, '..', '..', 'resources', `status-${values.status}.svg`)
           }
         } else if (!isRoot) {
+          this.contextValue = `instance-unknown`
           this.iconPath = {
             light: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg'),
             dark: path.join(__filename, '..', '..', 'resources', 'status-unknown.svg')
           }
+        }
+
+        // Set context for root
+        if (isRoot) {
+          this.contextValue = `instances`
         }
 
         // command to open the text editor
