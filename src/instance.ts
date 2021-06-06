@@ -24,7 +24,7 @@ export class InstanceManager {
         this.url = url
         this.timer = null
 
-        this.fpath = ""
+        this.fpath = path.join(tempdir,".direktiv", this.id.replace(replacer, "-"))
     }
 
     async cancelInstance() {
@@ -88,11 +88,63 @@ export class InstanceManager {
             reject(e.message)
         }
     }
-    async createTempFile() {
-        let fpath = path.join(tempdir,".direktiv", this.id.replace(replacer, "-"))
-        this.fpath = fpath
-      
+
+    // Create temp file for instance logs
+    async createTempFile() {   
         fs.writeFileSync(this.fpath, " ")
+    }
+
+    // Create temp files for input and output data
+    async createExtraTempFiles() {
+        fs.writeFileSync(`${this.fpath}-input`, " ")
+        fs.writeFileSync(`${this.fpath}-output`, " ")
+    }
+
+    async openInput(){
+        // open input in vscode window
+        let td = await vscode.workspace.openTextDocument(`${this.fpath}-input`)
+        await vscode.window.showTextDocument(td, {preview: false})
+    }
+
+    async openOutput(){
+        // open output in vscode window
+        let td = await vscode.workspace.openTextDocument(`${this.fpath}-output`)
+        await vscode.window.showTextDocument(td, {preview: false})
+    }
+
+    async getExtraDataForInstance(field: string) {
+        try {
+            if (field == "input") {
+                let str = await this.getExtraDataForInstanceString("input")
+                // write file to input temp file
+                fs.writeFileSync(`${this.fpath}-input`, str)
+            } else if (field == "output"){
+                let str = await this.getExtraDataForInstanceString("output")
+                // write file to output temp file
+                fs.writeFileSync(`${this.fpath}-output`, str)
+            }
+        } catch(e) {
+            vscode.window.showErrorMessage(e.message)
+        }
+    }
+
+    async getExtraDataForInstanceString(field: string) {
+            let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.token}`
+                }
+            })
+            if(!resp.ok) {
+                await handleError(resp, "Get Input / Output", "getInstance")
+            } else {
+                let json = await resp.json()              
+                if (field == "input") {
+                    return Buffer.from(json.input, 'base64').toString("ascii")
+                } else if (field == "output"){
+                    return Buffer.from(json.output, 'base64').toString("ascii")
+                }
+            }
     }
 
     async openLogs(){
@@ -124,6 +176,40 @@ export class InstanceManager {
                 fs.writeFileSync(this.fpath, str)
 
             }
+        } catch(e) {
+            vscode.window.showErrorMessage(e.message)
+        }
+    }
+
+    async rerunInstance() {
+        // Split id - {Namesapce}/{Workflow}/{uid}
+        const splitID = this.id.split("/")
+        const ns = splitID[0]
+        const wf = splitID[1]
+
+        try {
+            let inputBody = await this.getExtraDataForInstanceString("input")
+            console.log("inputBody =", inputBody)
+
+            let resp = await fetch(`${this.url}/api/namespaces/${ns}/workflows/${wf}/execute`,{
+                method: "POST",
+                body: inputBody,
+                headers: {
+                    "Authorization": `Bearer ${this.token}`
+                }
+            })
+
+            if(!resp.ok) {
+                await handleError(resp, "Execute Workflow", "invokeWorkflow")
+            } else {
+                let json = await resp.json()
+
+                // Set new id and new path
+                this.id = json.instanceId
+                this.fpath = path.join(tempdir,".direktiv", this.id.replace(replacer, "-"))
+                return
+            }
+
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
         }

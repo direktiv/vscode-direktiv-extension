@@ -79,6 +79,18 @@
 			{
 				"title": "Cancel Instance",
 				"command": "direktiv.cancelInstance"
+			},
+			{
+				"title": "Rerun Instance",
+				"command": "direktiv.rerunInstance"
+			},
+			{
+				"title": "Get Instance Input",
+				"command": "direktiv.getInputInstance"
+			},
+			{
+				"title": "Get Instance Output",
+				"command": "direktiv.getOutputInstance"
 			}
 		],
 		"menus": {
@@ -97,6 +109,18 @@
 				{
 					"command": "direktiv.cancelInstance",
 					"when": "viewItem == instance-pending"
+				},
+				{
+					"command": "direktiv.rerunInstance",
+					"when": "viewItem =~ /instance-/"
+				},
+				{
+					"command": "direktiv.getInputInstance",
+					"when": "viewItem =~ /instance-/"
+				},
+				{
+					"command": "direktiv.getOutputInstance",
+					"when": "viewItem == instance-complete"
 				},
 				{
 					"command": "direktiv.removeInstanceManager",

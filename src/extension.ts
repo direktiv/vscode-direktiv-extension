@@ -159,6 +159,49 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(removeInstancesManager)
 
+	let rerunInstance = vscode.commands.registerCommand("direktiv.rerunInstance", async(inst: any)=>{
+		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.label)
+		instanceManager.rerunInstance().then(async () => {
+			await instanceManager.createTempFile()
+			await instanceManager.openLogs()
+
+			// refresh instance list
+			instances.refresh()
+			let timer = setInterval(async()=>{
+				let status = await instanceManager.getInstanceStatus()
+				if (status !== "pending"){
+					setTimeout(()=>{
+						clearInterval(timer)			
+					},4000)
+				} 
+				await instanceManager.getLogsForInstance()
+			},2000)
+		}).catch((e) => {
+			console.log("failed to rerun, ", e)
+		})
+		
+	})
+
+	context.subscriptions.push(rerunInstance)
+
+	let getInputInstance = vscode.commands.registerCommand("direktiv.getInputInstance", async(inst: any)=>{
+		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.label)
+		await instanceManager.createExtraTempFiles()
+		await instanceManager.getExtraDataForInstance("input")
+		await instanceManager.openInput()
+	})
+
+	context.subscriptions.push(getInputInstance)
+
+	let getOutputInstance = vscode.commands.registerCommand("direktiv.getOutputInstance", async(inst: any)=>{
+		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.label)
+		await instanceManager.createExtraTempFiles()
+		await instanceManager.getExtraDataForInstance("output")
+		await instanceManager.openOutput()
+	})
+
+	context.subscriptions.push(getOutputInstance)
+
 }
 
 // this method is called when your extension is deactivated
