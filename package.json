@@ -1,16 +1,22 @@
 {
-	"name": "direktiv",
-	"displayName": "direktiv",
-	"publisher": "vorteil",
-	"description": "An extension to help use Direktiv",
+	"name": "Direktiv",
+	"displayName": "Direktiv",
+	"publisher": "direktiv",
+	"description": "An extension that provides linting while writing workflows and the ability to interact with workflows and instances",
 	"version": "0.0.1",
+	"repository": {
+		"url": "https://github.com/vorteil/vscode-direktiv-extension"
+	},
+	"icon": "resources/direktiv.png",
 	"engines": {
 		"vscode": "^1.56.0"
 	},
 	"categories": [
 		"Other"
 	],
-	"extensionDependencies": ["redhat.vscode-yaml"],
+	"extensionDependencies": [
+		"redhat.vscode-yaml"
+	],
 	"activationEvents": [
 		"onCommand:direktiv.connect",
 		"onCommand:direktiv.pushWorkflow",
@@ -32,7 +38,7 @@
 			]
 		},
 		"views": {
-			"instance-view":[
+			"instance-view": [
 				{
 					"id": "instances",
 					"name": "Instances"
@@ -133,7 +139,7 @@
 					"command": "direktiv.connect"
 				},
 				{
-					"when": "resourceFilename =~ /.direktiv.yaml/", 
+					"when": "resourceFilename =~ /.direktiv.yaml/",
 					"command": "direktiv.pushWorkflow",
 					"group": "direktiv@1"
 				},
@@ -156,7 +162,11 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "yarn run compile",
+		"vscode:prepublish": "yarn run -S esbuild-base --minify",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "yarn run -S esbuild-base --sourcemap",
+		"esbuild-watch": "yarn run -S esbuild-base --sourcemap --watch",
+		"test-compile": "tsc -p ./",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "yarn run compile && yarn run lint",
@@ -170,6 +180,7 @@
 		"@types/vscode": "^1.56.0",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
+		"esbuild": "^0.12.5",
 		"eslint": "^7.19.0",
 		"glob": "^7.1.6",
 		"mocha": "^8.2.1",
