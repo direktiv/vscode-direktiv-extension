@@ -19,15 +19,35 @@
 	],
 	"activationEvents": [
 		"onCommand:direktiv.connect",
+		"onCommand:direktiv.exec",
+		"onCommand:direktiv.saveUpdateAndExecute",
+		"onCommand:direktiv.saveAndUpdate",
 		"onCommand:direktiv.pushWorkflow",
 		"onCommand:direktiv.updateWorkflow",
 		"onCommand:direktiv.executeWorkflow",
 		"onCommand:direktiv.deleteWorkflow",
 		"onCommand:direktiv.addInstanceManager",
-		"onView:instances"
+		"onView:instances",
+		"onLanguage:direktion"	
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"languages": [
+			{
+				"id": "direktion",
+				"extensions": [
+					".direktion"
+				],
+				"configuration": "resources/direktion.configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "direktion",
+				"scopeName": "source.direktion",
+				"path": "resources/direktion.tmGrammar.json"
+			}
+		],
 		"viewsContainers": {
 			"activitybar": [
 				{
@@ -47,12 +67,28 @@
 		},
 		"commands": [
 			{
+				"command": "direktiv.exec",
+				"title": "Execute Workflow"
+			},
+			{
+				"command": "direktiv.saveAndUpdate",	
+				"title": "Save and Update Workflow"
+			},
+			{
+				"command": "direktiv.saveUpdateAndExecute",
+				"title": "Save, Update and Execute Workflow"
+			},
+			{
 				"command": "direktiv.refreshInstances",
 				"title": "Refresh",
 				"icon": {
 					"light": "resources/light/refresh.svg",
 					"dark": "resources/dark/refresh.svg"
 				}
+			},
+			{
+				"title": "Compile to YAML",
+				"command": "direktion.compileToYAML"
 			},
 			{
 				"title": "Add Direktiv Service",
@@ -87,6 +123,26 @@
 				"command": "direktiv.cancelInstance"
 			}
 		],
+		"keybindings": [
+			{
+				"when": "editorIsOpen",
+				"command": "direktiv.saveAndUpdate",
+				"key": "ctrl+alt+s",
+				"mac": "shift+cmd+s"
+			},
+			{
+				"when": "editorIsOpen",
+				"command": "direktiv.saveUpdateAndExecute",
+				"key": "ctrl+alt+x",
+				"mac": "shift+cmd+x"
+			},
+			{
+				"when": "editorIsOpen",
+				"command": "direktiv.exec",
+				"key": "shift+alt+x",
+				"mac": "shift+cmd+f"
+			}
+		],
 		"menus": {
 			"view/title": [
 				{
@@ -113,6 +169,11 @@
 				{
 					"when": "explorerResourceIsFolder",
 					"command": "direktiv.connect"
+				},
+				{
+					"when": "resourceExtname == .direktion",
+					"command": "direktion.compileToYAML",
+					"group": "direktion@1"
 				},
 				{
 					"when": "resourceFilename =~ /.direktiv.yaml/",
