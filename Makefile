@@ -25,7 +25,5 @@ build:
 
 .PHONY: package
 package:
-	docker run --rm -v ${PWD}:/app $(IMAGE_NAME):$(TAG) package -o Direktiv-$(VERSION).vsix
-	sudo chown ${USER} Direktiv-$(VERSION).vsix
-
-
+	docker run --rm -v ${PWD}:/app $(IMAGE_NAME):$(TAG) package -o Direktiv.vsix
+	sudo chown ${USER} Direktiv.vsix
