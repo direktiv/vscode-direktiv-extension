@@ -10,6 +10,24 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
+  dependencies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: vorteil/direktion
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - run: |
+          mkdir -p extension-contents
+          make direktion
+          cp build/direktion ./extension-contents
+          cp vscode/syntaxes/direktion.tmGrammar.json ./extension-contents
+      - uses: actions/upload-artifact@v2
+        with:
+          name: extension-contents
+          path: ./extension-contents
+
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -17,11 +35,11 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
         with:
-          repository: vorteil/direktion
-          token: ${{ secrets.ACCESS_TOKEN }}
+          name: extensions-contents
       # Runs a single command using the runners shell
       - name: Build the extension package
         run: |
           ls
+          ls ./extension-contents
