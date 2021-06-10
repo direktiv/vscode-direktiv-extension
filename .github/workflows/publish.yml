@@ -17,7 +17,11 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2
-
+      - uses: actions/checkout@v2
+        with:
+          repository: vorteil/direktion
+          token: ${{ secrets.ACCESS_TOKEN }}
       # Runs a single command using the runners shell
       - name: Build the extension package
-        run: make extension
+        run: |
+          ls
