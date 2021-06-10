@@ -42,6 +42,7 @@ jobs:
         run: |
           mv ./direktion ./resources
           mv ./direktion.tmGrammar.json ./resources
+          npm install
           make build
           make package
       - uses: actions/upload-artifact@v2
