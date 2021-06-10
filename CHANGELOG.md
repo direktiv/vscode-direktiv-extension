@@ -11,8 +11,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   - Save and Upload (ctrl+alt+s) 
   - Save, Upload and Execute (ctrl+alt+x)
   - Execute (shift+alt+x)
-- Experimental new scripting language highly in development 
-  - Ability to compile to YAML 
 ## [0.0.1] - 04-06-2021
 ### Added
 - The ability to download all workflows from a namespace on a folder contextually.
