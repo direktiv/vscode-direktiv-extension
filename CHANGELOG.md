@@ -8,7 +8,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [0.0.4] - 11-06-2021
 - Hotfixed a bug with the yaml schema we're using with Direktiv
-- Changed contextual menu for workflows added an extra command
+- Changed contexual menu for workflows added an extra command
   - Pull Workflow pulls the remote workflow into the file.
 ## [0.0.3] - 10-06-2021
 - Hotfixed bug with on save for other files.
