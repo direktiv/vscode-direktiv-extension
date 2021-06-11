@@ -75,11 +75,11 @@ export const Schema = {
       },
       "start": {
         "type": "object",
-        "enum": ["scheduled", "event"],
         "description": "The start definition of a workflow.",
         "required": ["type"],
         "properties": {
           "type": {
+            "enum": ["scheduled", "event"],
             "type": "string",
             "description": "The type of start event for the workflow"
           },

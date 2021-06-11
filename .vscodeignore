@@ -7,6 +7,8 @@ src/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
+direktion
+upx*
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map

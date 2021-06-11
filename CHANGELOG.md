@@ -6,6 +6,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.4] - 11-06-2021
+- Hotfixed a bug with the yaml schema we're using with Direktiv
+- Changed contextual menu for workflows added an extra command
+  - Pull Workflow pulls the remote workflow into the file.
+## [0.0.3] - 10-06-2021
+- Hotfixed bug with on save for other files.
 ## [0.0.2] - 10-06-2021
 - Added hotkeys for 
   - Save and Upload (ctrl+alt+s) 

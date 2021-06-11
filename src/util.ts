@@ -14,6 +14,21 @@ interface Auth {
     token: string
 }
 
+export async function writeManifest(uri: vscode.Uri, data: string) {
+    let manifest = path.join(path.dirname(uri.path.toString()), manifestDirektiv)
+    fs.writeFileSync(manifest, data)
+}
+
+export async function readManifestForRevision(uri: vscode.Uri): Promise<any| undefined> {
+    let manifest = path.join(path.dirname(uri.path.toString()), manifestDirektiv)
+		
+	if (fs.existsSync(manifest)) {
+        const data = fs.readFileSync(manifest, {encoding: "utf8"})
+        return JSON.parse(data)
+    } else {
+        vscode.window.showErrorMessage("Manifest doesn't exist right-click on the folder to Download Workflows.")
+    }
+}
 export async function readManifest(uri: vscode.Uri): Promise<Auth | undefined>{
     let manifest = path.join(path.dirname(uri.path.toString()), manifestDirektiv)
 		
@@ -48,9 +63,9 @@ export async function handleError(resp: any, summary: string, perm: string) {
 }
 
 export function appendSchema() {
-	// check if the schema doesnt exist create it
+	// check if the schema doesnt exist create it 
+    // adding extra process here but it allows us to update the schema when pushing a new version 
 	if(!fs.existsSync(path.join(homedir, ".direktiv.schema.json"))){
-
 		// write schema to file
 		fs.writeFileSync(path.join(homedir, ".direktiv.schema.json"), schemaFP)
 		// Get Config
@@ -63,7 +78,21 @@ export function appendSchema() {
 		if (yamlSchemas && !(schemaFP in yamlSchemas)) {
 			yamlCfg.update("schemas", {...yamlSchemas, [path.join(homedir, ".direktiv.schema.json")]: "*.direktiv.yaml"}, 1)
 		}
-	}
+        // force a reload
+        vscode.commands.executeCommand("workbench.action.reloadWindow")
+	} else {
+        console.log('changes made')
+        const data = fs.readFileSync(path.join(homedir, ".direktiv.schema.json"), {encoding: 'utf8'})
+        console.log(data, "DATA CHECK")
+        console.log(schemaFP, "schemaFP")
+        if (data !== schemaFP) {
+            fs.writeFileSync(path.join(homedir, ".direktiv.schema.json"), schemaFP)
+            // force a reload
+            setTimeout(()=>{
+                vscode.commands.executeCommand("workbench.action.reloadWindow")
+            },500)
+        }
+    }
 }
 
 export interface Input {

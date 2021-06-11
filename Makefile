@@ -12,11 +12,19 @@ extension: direktion build package
 
 .PHONY: direktion
 direktion:
+	if [ ! -d ${mkfile_dir_main}/upx ]; then \
+		wget https://github.com/upx/upx/releases/latest/download/upx-3.96-amd64_linux.tar.xz; \
+		tar -xvf upx-3.96-amd64_linux.tar.xz; \
+		cp upx-3.96-amd64_linux/upx ./; \
+		rm -rf upx-3.96-amd64_linux.tar.xz; \
+	fi
 	if [ ! -d ${mkfile_dir_main}direktion ]; then \
 		git clone git@github.com:vorteil/direktion.git; \
 	fi
-	cd ${mkfile_dir_main}direktion && git pull && make direktion 
-	cp direktion/build/direktion ./resources
+	cd ${mkfile_dir_main}direktion && git pull
+	cd direktion && go get -v && GOOS=linux go build -ldflags="-s -w" -o direktion-linux *.go && GOOS=windows go build -ldflags="-s -w" -o direktion-windows.exe *.go && GOOS=darwin go build -ldflags="-s -w" -o direktion-darwin *.go
+	./upx direktion/direktion-linux && ./upx direktion/direktion-windows.exe && ./upx direktion/direktion-darwin
+	cp direktion/direktion-linux ./resources && cp direktion/direktion-windows.exe ./resources && cp direktion/direktion-darwin ./resources
 	cp direktion/vscode/syntaxes/direktion.tmGrammar.json ./resources
 
 .PHONY: build

@@ -3,7 +3,7 @@
 	"displayName": "Direktiv",
 	"publisher": "direktiv",
 	"description": "An extension that provides linting while writing workflows and the ability to interact with workflows and instances",
-	"version": "0.0.1",
+	"version": "0.0.3",
 	"repository": {
 		"url": "https://github.com/vorteil/vscode-direktiv-extension"
 	},
@@ -23,13 +23,15 @@
 		"onCommand:direktiv.saveUpdateAndExecute",
 		"onCommand:direktiv.saveAndUpdate",
 		"onCommand:direktiv.pushWorkflow",
+        "onCommand:direktiv.pullWorkflow",
 		"onCommand:direktiv.updateWorkflow",
 		"onCommand:direktiv.executeWorkflow",
 		"onCommand:direktiv.deleteWorkflow",
 		"onCommand:direktiv.addInstanceManager",
 		"onView:instances",
-		"onLanguage:direktion"	
-	],
+		"onLanguage:direktion",
+        "onLanguage:yaml"
+    ],
 	"main": "./out/extension.js",
 	"contributes": {
 		"languages": [
@@ -103,13 +105,17 @@
 				"command": "direktiv.connect"
 			},
 			{
-				"title": "Upload Workflow",
+				"title": "Create Workflow",
 				"command": "direktiv.pushWorkflow"
 			},
 			{
-				"title": "Update Workflow",
+				"title": "Push Workflow",
 				"command": "direktiv.updateWorkflow"
 			},
+            {
+                "title": "Pull Workflow",
+                "command": "direktiv.pullWorkflow"
+            },
 			{
 				"title": "Execute Workflow",
 				"command": "direktiv.executeWorkflow"
@@ -204,20 +210,25 @@
 					"command": "direktiv.pushWorkflow",
 					"group": "direktiv@1"
 				},
+                {
+                    "when": "resourceFilename =~ /.direktiv.yaml/",
+                    "command": "direktiv.pullWorkflow",
+                    "group": "direktiv@2"
+                },
 				{
 					"when": "resourceFilename =~ /.direktiv.yaml/",
 					"command": "direktiv.updateWorkflow",
-					"group": "direktiv@2"
-				},
-				{
-					"when": "resourceFilename =~ /.direktiv.yaml/",
-					"command": "direktiv.executeWorkflow",
 					"group": "direktiv@3"
 				},
 				{
 					"when": "resourceFilename =~ /.direktiv.yaml/",
-					"command": "direktiv.deleteWorkflow",
+					"command": "direktiv.executeWorkflow",
 					"group": "direktiv@4"
+				},
+				{
+					"when": "resourceFilename =~ /.direktiv.yaml/",
+					"command": "direktiv.deleteWorkflow",
+					"group": "direktiv@5"
 				}
 			]
 		}

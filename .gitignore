@@ -5,3 +5,5 @@ node_modules
 *.vsix
 direktion
 direktion.tmGrammar.json
+direktion-*
+upx*
