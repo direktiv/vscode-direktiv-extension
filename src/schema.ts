@@ -5,6 +5,19 @@ export const Schema = {
     "type": "object",
     "additionalProperties": false,
     "definitions": {
+      "error": {
+        "required": ["error"],
+        "properties": {
+            "error": {
+                "type": "string",
+                "description": "an error"
+            },
+            "transition": {
+                "type": "string",
+                "description": "transition to state"
+            }
+        }
+      },
       "event" : {
         "required": ["type"],
         "type": "object",
@@ -163,15 +176,9 @@ export const Schema = {
                 }
               },
               "catch": {
-                "type": "object",
-                "required": ["error"],
-                "properties": {
-                  "error": {
-                    "type": "string"
-                  },
-                  "transition": {
-                    "type": "string"
-                  }
+                "type":"array",
+                "items": {
+                    "$ref":"#/definitions/error"
                 }
               }
             },

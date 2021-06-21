@@ -6,6 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.5] - 22-06-2021
+- Fixed a bug with the yaml schema not intepreting 'catch' field correctly.
 ## [0.0.4] - 11-06-2021
 - Hotfixed a bug with the yaml schema we're using with Direktiv
 - Changed contexual menu for workflows added an extra command
