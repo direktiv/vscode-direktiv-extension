@@ -18,11 +18,17 @@ export class InstanceManager {
     public timer: any
     public fpath: string
 
+    public input: string
+    public output: string
+
     constructor(url:string, token: string, id: string) {
         this.id = id
         this.token = token
         this.url = url
         this.timer = null
+
+        this.input = ""
+        this.output = ""
 
         this.fpath = path.join(tempdir,".direktiv", this.id.replace(replacer, "-"))
     }
@@ -44,6 +50,8 @@ export class InstanceManager {
             vscode.window.showErrorMessage(e.message)
         }
     }
+
+
 
     async getInstanceStatus(): Promise<string> {
         try {
@@ -140,9 +148,11 @@ export class InstanceManager {
             } else {
                 let json = await resp.json()              
                 if (field == "input") {
-                    return Buffer.from(json.input, 'base64').toString("ascii")
+                    this.input = Buffer.from(json.input, 'base64').toString("ascii")
+                    return this.input
                 } else if (field == "output"){
-                    return Buffer.from(json.output, 'base64').toString("ascii")
+                    this.output = Buffer.from(json.output, 'base64').toString("ascii")
+                    return this.output
                 }
             }
     }
@@ -151,6 +161,13 @@ export class InstanceManager {
         // open str in vscode window
         let td = await vscode.workspace.openTextDocument(this.fpath)
         await vscode.window.showTextDocument(td, {preview: false})
+    }
+
+    async writeOutput() {
+        let data = fs.readFileSync(this.fpath, {encoding: "utf8"})
+        data = `${data}\n------OUTPUT------\n${this.output}`
+        console.log(data, "DATA OUTPUT?????")
+        fs.writeFileSync(this.fpath, data)
     }
 
     async getLogsForInstance() {
@@ -173,8 +190,8 @@ export class InstanceManager {
                     str += `[${time}] ${json.workflowInstanceLogs[i].message}\n`
                 }
                 // write file to directory
+                str = `------INPUT-------\n${this.input}\n------LOGS--------\n${str}`
                 fs.writeFileSync(this.fpath, str)
-
             }
         } catch(e) {
             vscode.window.showErrorMessage(e.message)

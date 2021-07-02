@@ -36,6 +36,26 @@ export class DirektivManager {
         return f
     }
 
+    async doesWorkflowExist(id: string) {
+        try {
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${id}`,{
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.token}`
+                }
+            })
+            if(resp.ok){
+                if(resp.status == 404) {
+                    return false
+                } else {
+                    return true
+                }
+            }
+        } catch(e) {
+            vscode.window.showErrorMessage(e.message)
+        }
+    }
+
     async DeleteWorkflow() {
         let f = this.getID()
         try {
@@ -56,14 +76,17 @@ export class DirektivManager {
             vscode.window.showErrorMessage(e.message)
         }
     }
-
+    
     async CreateWorkflow() {
+        try {
+
         let data = fs.readFileSync(this.connection, {encoding:'utf8'});
+        
         let dataParse = yaml.parse(data)
+
         let f = this.connection.substr(0, this.connection.lastIndexOf('.'));
         f = f.substr(0, f.lastIndexOf('.'))
 
-        try {
             let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows`, {
                 method: "POST",
                 headers: {
@@ -113,10 +136,12 @@ export class DirektivManager {
     }
 
     async pushWorkflow(f: string, direktiv: any) {
-        let data = fs.readFileSync(this.connection, {encoding:'utf8'});
-        let dataParse = yaml.parse(data)
+
 
         try {
+                    
+        let data = fs.readFileSync(this.connection, {encoding:'utf8'});
+        let dataParse = yaml.parse(data)    
             let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${f}`, {
                 method: "PUT",
                 body: data,
@@ -126,17 +151,24 @@ export class DirektivManager {
                 }
             })
             if(!resp.ok) {
-                await handleError(resp, 'Update Workflow', "updateWorkflow")
+                console.log("STATUS: ", resp.status)
+                if (resp.status === 404) {
+                    // create the workflow instead
+                    await this.CreateWorkflow()
+                } else {
+                    await handleError(resp, 'Update Workflow', "updateWorkflow")
+                }
             } else {
                 // Update revision locally as update was successful
                 direktiv[f] = direktiv[f] + 1
                 fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktiv))
                 vscode.window.showInformationMessage(`Successfully updated ${f} remotely.`)
             }
+        await this.checkFileNeedsChanged(dataParse, f, direktiv)
+
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
         }
-        await this.checkFileNeedsChanged(dataParse, f, direktiv)
     }
 
     async checkFileNeedsChanged(dataParse: any, f: string, direktiv: any) {
@@ -190,11 +222,13 @@ export class DirektivManager {
             } else {
                 let json = await resp.json()
 
-                for (const workflow of json.workflows) {
-                    let wfdata = await this.GetWorkflowData(workflow.id)
-                    this.workflowdata.set(workflow.id, wfdata)
+                if (json.workflows) {
+                    for (const workflow of json.workflows) {
+                        let wfdata = await this.GetWorkflowData(workflow.id)
+                        this.workflowdata.set(workflow.id, wfdata)
+                    }
                 }
-                
+
                 await this.ExportNamespace()
             }
         } catch(e) {
@@ -212,7 +246,11 @@ export class DirektivManager {
                 }
             })
             if(!resp.ok) {
-                await handleError(resp, "Fetch Workflow", "getWorkflow")
+                if (resp.status == 404) {
+                    // ignore this error as we will be creating the workflow.
+                } else {
+                    await handleError(resp, "Fetch Workflow", "getWorkflow")
+                }
             } else {
                 let json = await resp.json()
                 return json.revision
@@ -284,10 +322,14 @@ export class DirektivManager {
         // trim the last ,\n from revisions for valid json
         revisions = revisions.substr(0, revisions.lastIndexOf(',\n\t'));
 
+        if (revisions !== "") {
+            revisions = ",\n\t" + revisions
+        } 
+
         // create a manifest file
         fs.writeFileSync(path.join(this.connection, `.direktiv.manifest.json`), `{
     "url": "${this.url}",
-    "namespace": "${this.namespace}",
+    "namespace": "${this.namespace}"
     ${revisions}
 }`)
     }

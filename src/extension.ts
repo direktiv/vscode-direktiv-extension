@@ -4,11 +4,14 @@ import * as vscode from 'vscode';
 import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
 import { InstancesProvider, Instance } from './instances';
+import { setupKeybinds } from './keybinds';
 import { GetInput, appendSchema, readManifest, readManifestForRevision, writeManifest } from './util';
 
 const fs = require("fs")
 const path = require("path")
 const mkdirp = require("mkdirp")
+const yaml = require("yaml")
+
 const tempdir = require("os").tmpdir()
 const { exec } = require("child_process");
 
@@ -41,11 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 	let instances = new InstancesProvider(context.globalState)
-	
 	// Pull any services from storage
 	instances.syncManagersToStorage()
 
-	// Todo clean up files i made in the deactivate vscode
 	// make all directories
 	let dirpath = path.join(tempdir, ".direktiv")
 	mkdirp.sync(dirpath)
@@ -59,35 +60,10 @@ export function activate(context: vscode.ExtensionContext) {
 	const direktionDiagnostics = vscode.languages.createDiagnosticCollection("direktion")
 	context.subscriptions.push(direktionDiagnostics)
 
-	let execDirektiv = vscode.commands.registerCommand('direktiv.exec', async ()=>{
-		if(vscode.window.activeTextEditor){
-			await vscode.commands.executeCommand("direktiv.executeWorkflow", vscode.Uri.file(vscode.window.activeTextEditor.document.fileName))
-		}
-	})
-
-	context.subscriptions.push(execDirektiv)
-
-	let saveAndUpdate = vscode.commands.registerCommand('direktiv.saveAndUpdate', async()=>{
-		if(vscode.window.activeTextEditor){
-			await vscode.window.activeTextEditor.document.save()
-			await vscode.commands.executeCommand("direktiv.updateWorkflow", vscode.Uri.file(vscode.window.activeTextEditor.document.fileName))
-		}
-	})
-
-	context.subscriptions.push(saveAndUpdate)
-
-	let saveAndUpdateAndExecute = vscode.commands.registerCommand('direktiv.saveUpdateAndExecute', async() => {
-		if(vscode.window.activeTextEditor){
-			await vscode.window.activeTextEditor.document.save()
-			await vscode.commands.executeCommand("direktiv.updateWorkflow", vscode.Uri.file(vscode.window.activeTextEditor.document.fileName))
-			await vscode.commands.executeCommand("direktiv.executeWorkflow", vscode.Uri.file(vscode.window.activeTextEditor.document.fileName))
-		}
-	})
-
-	context.subscriptions.push(saveAndUpdateAndExecute)
+    context = setupKeybinds(context)
 
 	// on save check for errors
-	let onSave = vscode.workspace.onDidSaveTextDocument((e: vscode.TextDocument) => {
+	let onSave = vscode.workspace.onDidSaveTextDocument(async (e: vscode.TextDocument) => {
 		if (path.extname(e.fileName) === ".direktion"){
 			// todo check if its not a direktion file then skip this step
 			exec(`${direktionPath} diagnostic ${e.uri.path}`, (error: Error, stdout: string, stderr: string)=>{
@@ -124,11 +100,35 @@ export function activate(context: vscode.ExtensionContext) {
 				
 			})
 		}
+        let split = e.fileName.split(".")
+        if(split[1] === "direktiv" && split[2] === "yaml") {
+            try {
+                let maniData = fs.readFileSync(e.uri.path, {encoding:'utf8'});
+                let ydata = yaml.parse(maniData)
+                console.log(ydata)
+                // if (maniData !== ""){
+                    // manifestData exist we should try upload the file
+                    let auth = await readManifest(e.uri)
+                    if(auth === undefined){
+                        return
+                    }
+                    const manager = new DirektivManager(auth.url, auth.namespace, auth.token, e.uri)
+                    let exist = await manager.doesWorkflowExist(ydata.id)
+                    if (!exist) {
+                        await manager.CreateWorkflow()
+                    }
+                // }
+            } catch(e) {
+                vscode.window.showErrorMessage(e.message)
+            }
+        }
 	})
 
 	context.subscriptions.push(onSave)
 
 	let compileToYAML = vscode.commands.registerCommand("direktion.compileToYAML", async(uri: vscode.Uri) => {
+
+        // Todo use direktion tokens to find the workflow id and then replace 'basename' currently with what the workflow id would be.
 
 		// check if file already exists
 		let basename = path.basename(uri.path).split(path.extname(uri.path))[0]
@@ -159,21 +159,37 @@ export function activate(context: vscode.ExtensionContext) {
 	let openLogs = vscode.commands.registerCommand("direktiv.openLogs", async(instance: Instance)=>{
 		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label)
 		await instanceManager.createTempFile()
-		await instanceManager.getLogsForInstance()
 		await instanceManager.openLogs()
-		
+
+	    // write the input
+        // make sure input gets stored globally before we start getting logs to add input at the front
+        await instanceManager.getExtraDataForInstanceString("input")
+        let fetchedOutput = false
 		let status = await instanceManager.getInstanceStatus()
+  
+		await instanceManager.getLogsForInstance()
+
 		if (status === "pending") {
 			let pollForNotPending = setInterval(async()=>{
 				status = await instanceManager.getInstanceStatus()
 				if (status !== "pending"){
 					setTimeout(()=>{
-						clearInterval(pollForNotPending)					
-					},4000)
+                        if (!fetchedOutput){                              
+                            clearInterval(pollForNotPending)	
+                            setTimeout(async()=>{
+                                await instanceManager.getExtraDataForInstanceString("output")
+                                await instanceManager.writeOutput() 
+                            }, 500)
+                        }
+                        fetchedOutput = true
+                    },4000)
 				} 
 				await instanceManager.getLogsForInstance()
 			},2000)
-		}
+		} else {
+            await instanceManager.getExtraDataForInstanceString("output")
+            await instanceManager.writeOutput() 
+        }
 	})
 
 	context.subscriptions.push(openLogs)
@@ -262,12 +278,23 @@ export function activate(context: vscode.ExtensionContext) {
 				const instanceManager = new InstanceManager(auth.url, auth.token, id)
 				await instanceManager.createTempFile()
 				await instanceManager.openLogs()
+
+                // make sure input gets stored globally before we start getting logs to add input at the front
+                await instanceManager.getExtraDataForInstanceString("input")
+                let fetchedOutput = false
 				let timer = setInterval(async()=>{
 					let status = await instanceManager.getInstanceStatus()
 					if (status !== "pending"){
-						setTimeout(()=>{
-							clearInterval(timer)			
-						},4000)
+						setTimeout(async ()=>{
+                            if (!fetchedOutput){                              
+    							clearInterval(timer)	
+                                setTimeout(async()=>{
+                                    await instanceManager.getExtraDataForInstanceString("output")
+                                    await instanceManager.writeOutput() 
+                                }, 500)
+                            }
+                            fetchedOutput = true
+                        },1000)
 					} 
 					await instanceManager.getLogsForInstance()
 				},2000)
@@ -320,12 +347,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// refresh instance list
 			instances.refresh()
+            // write the input
+             // make sure input gets stored globally before we start getting logs to add input at the front
+             await instanceManager.getExtraDataForInstanceString("input")
+             let fetchedOutput = false
 			let timer = setInterval(async()=>{
 				let status = await instanceManager.getInstanceStatus()
 				if (status !== "pending"){
 					setTimeout(()=>{
-						clearInterval(timer)			
-					},4000)
+                        if (!fetchedOutput){                              
+                            clearInterval(timer)	
+                            setTimeout(async()=>{
+                                await instanceManager.getExtraDataForInstanceString("output")
+                                await instanceManager.writeOutput() 
+                            }, 500)
+                        }
+                        fetchedOutput = true
+					},1000)
 				} 
 				await instanceManager.getLogsForInstance()
 			},2000)
