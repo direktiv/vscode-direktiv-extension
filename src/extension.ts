@@ -69,8 +69,12 @@ export function activate(context: vscode.ExtensionContext) {
 	// on save check for errors
 	let onSave = vscode.workspace.onDidSaveTextDocument(async (e: vscode.TextDocument) => {
 		if (path.extname(e.fileName) === ".direktion"){
+			let fpath = e.uri.path
+			if (process.platform === "win32") {
+				fpath = fpath.substring(1);
+			}
 			// todo check if its not a direktion file then skip this step
-			exec(`${direktionPath} diagnostic ${e.uri.path}`, (error: Error, stdout: string, stderr: string)=>{
+			exec(`${direktionPath} diagnostic ${fpath}`, (error: Error, stdout: string, stderr: string)=>{
 				if (error) {
 					vscode.window.showErrorMessage(`${error}`)
 					return;
@@ -90,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 					direktionDiagnostics.set(e.uri, arr)
 				} else {
-					exec(`${direktionPath} format ${e.uri.path}`, (error: Error, stdout: string, stderr: string )=>{
+					exec(`${direktionPath} format ${fpath}`, (error: Error, stdout: string, stderr: string )=>{
 						if (error) {
 							vscode.window.showErrorMessage(`${error}`)
 							return;
