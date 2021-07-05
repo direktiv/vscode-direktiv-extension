@@ -16,12 +16,17 @@ interface Auth {
 
 export async function writeManifest(uri: vscode.Uri, data: string) {
     let manifest = path.join(path.dirname(uri.path.toString()), manifestDirektiv)
+    if (process.platform === "win32") {
+        manifest = manifest.substring(1);
+    }
     fs.writeFileSync(manifest, data)
 }
 
 export async function readManifestForRevision(uri: vscode.Uri): Promise<any| undefined> {
     let manifest = path.join(path.dirname(uri.path.toString()), manifestDirektiv)
-		
+    if (process.platform === "win32") {
+        manifest = manifest.substring(1);
+    }
 	if (fs.existsSync(manifest)) {
         const data = fs.readFileSync(manifest, {encoding: "utf8"})
         return JSON.parse(data)
@@ -31,7 +36,9 @@ export async function readManifestForRevision(uri: vscode.Uri): Promise<any| und
 }
 export async function readManifest(uri: vscode.Uri): Promise<Auth | undefined>{
     let manifest = path.join(path.dirname(uri.path.toString()), manifestDirektiv)
-		
+    if (process.platform === "win32") {
+        manifest = manifest.substring(1);
+    }
 	if (fs.existsSync(manifest)) {
         const data = fs.readFileSync(manifest, {encoding:'utf8'})
         const json = JSON.parse(data)
@@ -81,10 +88,7 @@ export function appendSchema() {
         // force a reload
         vscode.commands.executeCommand("workbench.action.reloadWindow")
 	} else {
-        console.log('changes made')
         const data = fs.readFileSync(path.join(homedir, ".direktiv.schema.json"), {encoding: 'utf8'})
-        console.log(data, "DATA CHECK")
-        console.log(schemaFP, "schemaFP")
         if (data !== schemaFP) {
             fs.writeFileSync(path.join(homedir, ".direktiv.schema.json"), schemaFP)
             // force a reload

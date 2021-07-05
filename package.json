@@ -23,15 +23,15 @@
 		"onCommand:direktiv.saveUpdateAndExecute",
 		"onCommand:direktiv.saveAndUpdate",
 		"onCommand:direktiv.pushWorkflow",
-        "onCommand:direktiv.pullWorkflow",
+		"onCommand:direktiv.pullWorkflow",
 		"onCommand:direktiv.updateWorkflow",
 		"onCommand:direktiv.executeWorkflow",
 		"onCommand:direktiv.deleteWorkflow",
 		"onCommand:direktiv.addInstanceManager",
 		"onView:instances",
 		"onLanguage:direktion",
-        "onLanguage:yaml"
-    ],
+		"onLanguage:yaml"
+	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"languages": [
@@ -73,7 +73,7 @@
 				"title": "Execute Workflow"
 			},
 			{
-				"command": "direktiv.saveAndUpdate",	
+				"command": "direktiv.saveAndUpdate",
 				"title": "Save and Update Workflow"
 			},
 			{
@@ -88,10 +88,10 @@
 					"dark": "resources/dark/refresh.svg"
 				}
 			},
-            {
-                "title": "Compile to YAML",
-                "command": "direktiv.compileToYAML"
-            },
+			{
+				"title": "Compile to YAML",
+				"command": "direktiv.compileToYAML"
+			},
 			{
 				"title": "Compile to YAML",
 				"command": "direktion.compileToYAML"
@@ -116,10 +116,10 @@
 				"title": "Push Workflow",
 				"command": "direktiv.updateWorkflow"
 			},
-            {
-                "title": "Pull Workflow",
-                "command": "direktiv.pullWorkflow"
-            },
+			{
+				"title": "Pull Workflow",
+				"command": "direktiv.pullWorkflow"
+			},
 			{
 				"title": "Execute Workflow",
 				"command": "direktiv.executeWorkflow"
@@ -146,24 +146,24 @@
 			}
 		],
 		"keybindings": [
-            {
-                "when": "editorIsOpen",
-                "command": "direktiv.convertToYAML",
-                "key": "ctrl+alt+c",
-                "mac": "shift+cmd+c"
-            },
-            {
-                "when": "editorIsOpen",
-                "command": "direktiv.convertAndUpload",
-                "key": "ctrl+alt+g",
-                "mac": "shift+cmd+g"
-            },
-            {
-                "when": "editorIsOpen",
-                "command": "direktiv.convertUploadAndExecute",
-                "key": "ctrl+alt+x",
-                "mac": "shift+cmd+x"
-            },
+			{
+				"when": "editorIsOpen",
+				"command": "direktiv.convertToYAML",
+				"key": "ctrl+alt+c",
+				"mac": "shift+cmd+c"
+			},
+			{
+				"when": "editorIsOpen",
+				"command": "direktiv.convertAndUpload",
+				"key": "ctrl+alt+g",
+				"mac": "shift+cmd+g"
+			},
+			{
+				"when": "editorIsOpen",
+				"command": "direktiv.convertUploadAndExecute",
+				"key": "ctrl+alt+x",
+				"mac": "shift+cmd+x"
+			},
 			{
 				"when": "editorIsOpen",
 				"command": "direktiv.saveAndUpdate",
@@ -219,11 +219,11 @@
 					"command": "direktion.compileToYAML",
 					"group": "direktion@1"
 				},
-                {
-                    "when": "resourceFilename =~ /.direktiv.yaml/",
-                    "command": "direktiv.pullWorkflow",
-                    "group": "direktiv@2"
-                },
+				{
+					"when": "resourceFilename =~ /.direktiv.yaml/",
+					"command": "direktiv.pullWorkflow",
+					"group": "direktiv@2"
+				},
 				{
 					"when": "resourceFilename =~ /.direktiv.yaml/",
 					"command": "direktiv.updateWorkflow",
@@ -272,6 +272,8 @@
 		"dayjs": "^1.10.5",
 		"mkdirp": "^1.0.4",
 		"node-fetch": "^2.6.1",
+		"slash": "^4.0.0",
+		"upath": "^2.0.1",
 		"yaml": "^1.10.2"
 	}
 }

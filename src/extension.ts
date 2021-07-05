@@ -103,9 +103,12 @@ export function activate(context: vscode.ExtensionContext) {
         let split = e.fileName.split(".")
         if(split[1] === "direktiv" && split[2] === "yaml") {
             try {
-                let maniData = fs.readFileSync(e.uri.path, {encoding:'utf8'});
+				let fpath = e.uri.path
+				if (process.platform === "win32") {
+                    fpath = fpath.substring(1);
+                }
+                let maniData = fs.readFileSync(fpath, {encoding:'utf8'});
                 let ydata = yaml.parse(maniData)
-                console.log(ydata)
                 // if (maniData !== ""){
                     // manifestData exist we should try upload the file
                     let auth = await readManifest(e.uri)
@@ -231,21 +234,25 @@ export function activate(context: vscode.ExtensionContext) {
 
         // get workflowid from filepath
         const id = await manager.getID()
+		console.log(id)
         // get workflowRevision 
         const revision = await manager.GetWorkflowRevision(id)
-
-        console.log('hey')
+		console.log(revision)
         // get workflow data
         const yaml = await manager.GetWorkflowData(id)
         console.log(yaml)
-        // get local manifest to update manifest when pulling
+		// get local manifest to update manifest when pulling
         const manifest = await readManifestForRevision(uri)
-
+		console.log(manifest)
         // update to new revision we're pulling
         manifest[id] = revision
 
+		let fpath = uri.path
+		if (process.platform === "win32") {
+            fpath = fpath.substring(1);
+        }
         // write yaml out
-        fs.writeFileSync(uri.path, yaml)
+        fs.writeFileSync(fpath, yaml)
 
         // write manifest out
         writeManifest(uri, JSON.stringify(manifest))

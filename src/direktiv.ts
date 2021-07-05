@@ -1,10 +1,12 @@
 import * as vscode from "vscode"
+import * as upath from 'upath';
 import {handleError} from "./util"
 
 const fetch = require("node-fetch")
 const path = require("path")
 const fs = require("fs")
 const yaml = require("yaml")
+const process = require("process")
 const homedir = require('os').homedir();
 
 export class DirektivManager {
@@ -26,7 +28,12 @@ export class DirektivManager {
         this.token = token   
         this.workflowdata = new Map()
         this.workflowRevisions = new Map()
-        this.connection = uri.path.toString()
+
+        let fpath = uri.path.toString()
+        if (process.platform === "win32") {
+            fpath = fpath.substring(1);
+        }
+        this.connection = fpath
     }
 
     getID() {
@@ -99,13 +106,17 @@ export class DirektivManager {
                 await handleError(resp, "Create Workflow", "createWorkflow")
             } else {
                 // successfully uploaded change local manifest to have that revision
-                let direktivManifest = fs.readFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), {encoding:'utf8'});
+                let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
+                // if (process.platform === "win32") {
+                //     manifestPath = manifestPath.substring(1);
+                // }
+                let direktivManifest = fs.readFileSync(manifestPath, {encoding:'utf8'});
                 let direktivJSON = JSON.parse(direktivManifest)
                 direktivJSON[dataParse.id] = 0
 
                 await this.checkFileNeedsChanged(dataParse, f, direktivJSON)
 
-                fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktivJSON))
+                fs.writeFileSync(manifestPath, JSON.stringify(direktivJSON))
 
                 vscode.window.showInformationMessage("Successfully created new Workflow remotely.")
             } 
@@ -151,7 +162,6 @@ export class DirektivManager {
                 }
             })
             if(!resp.ok) {
-                console.log("STATUS: ", resp.status)
                 if (resp.status === 404) {
                     // create the workflow instead
                     await this.CreateWorkflow()
@@ -161,7 +171,11 @@ export class DirektivManager {
             } else {
                 // Update revision locally as update was successful
                 direktiv[f] = direktiv[f] + 1
-                fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktiv))
+                let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
+                // if (process.platform === "win32") {
+                //     manifestPath = manifestPath.substring(1);
+                // }
+                fs.writeFileSync(manifestPath, JSON.stringify(direktiv))
                 vscode.window.showInformationMessage(`Successfully updated ${f} remotely.`)
             }
         await this.checkFileNeedsChanged(dataParse, f, direktiv)
@@ -174,25 +188,36 @@ export class DirektivManager {
     async checkFileNeedsChanged(dataParse: any, f: string, direktiv: any) {
         if(dataParse.id !== f) {
             // id has been changed lets rename the file
-            fs.renameSync(this.connection, path.join(path.dirname(this.connection), `${dataParse.id}.direktiv.yaml`))
+            let newpath =  path.join(path.dirname(this.connection), `${dataParse.id}.direktiv.yaml`)
+            // if (process.platform === "win32") {
+            //     newpath = newpath.substring(1);
+            // }
+            fs.renameSync(this.connection, newpath)
 
             // need to change the revision stored in the map aswell
             direktiv[dataParse.id] = direktiv[f] 
             delete direktiv[f]
 
-            fs.writeFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), JSON.stringify(direktiv))
+            let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
+            // if (process.platform === "win32") {
+            //     manifestPath = manifestPath.substring(1);
+            // }
+            fs.writeFileSync(manifestPath, JSON.stringify(direktiv))
 
             await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
-            let doc = await vscode.workspace.openTextDocument(`${path.join(path.dirname(this.connection), `${dataParse.id}.direktiv.yaml`)}`)
+            let doc = await vscode.workspace.openTextDocument(`${newpath}`)
             await vscode.window.showTextDocument(doc)
         }
     }
 
     async UpdateWorkflow() {
         let f = this.getID()
-
+        let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
+        // if (process.platform === "win32") {
+        //     manifestPath = manifestPath.substring(1);
+        // }
         // read the .direktiv file to get revision
-        let direktiv = fs.readFileSync(path.join(path.dirname(this.connection), ".direktiv.manifest.json"), {encoding: "utf8"})
+        let direktiv = fs.readFileSync(manifestPath, {encoding: "utf8"})
         let direktivJSON = JSON.parse(direktiv)
         let revision = await this.GetWorkflowRevision(f)
         
@@ -284,6 +309,9 @@ export class DirektivManager {
 
     async ExportNamespace() {
         let nsContainer = path.join(this.connection,  ".direktiv.manifest.json")
+        // if (process.platform === "win32") {
+        //     nsContainer = nsContainer.substring(1);
+        // }
         if (!fs.existsSync(nsContainer)) {
             this.CreateFiles()
         } else {
@@ -307,7 +335,6 @@ export class DirektivManager {
 "${this.url}": "${this.token}"
 }`)
         }
-
 
         this.workflowdata.forEach((v: string, k:string)=>{
             fs.writeFileSync(path.join(this.connection, `${k}.direktiv.yaml`), v)

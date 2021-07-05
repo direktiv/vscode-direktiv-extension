@@ -166,7 +166,6 @@ export class InstanceManager {
     async writeOutput() {
         let data = fs.readFileSync(this.fpath, {encoding: "utf8"})
         data = `${data}\n------OUTPUT------\n${this.output}`
-        console.log(data, "DATA OUTPUT?????")
         fs.writeFileSync(this.fpath, data)
     }
 
@@ -206,7 +205,6 @@ export class InstanceManager {
 
         try {
             let inputBody = await this.getExtraDataForInstanceString("input")
-            console.log("inputBody =", inputBody)
 
             let resp = await fetch(`${this.url}/api/namespaces/${ns}/workflows/${wf}/execute`,{
                 method: "POST",
