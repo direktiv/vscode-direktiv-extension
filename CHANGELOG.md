@@ -6,6 +6,17 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.7] - 05-07-2021
+- Fixed a bug when downloading workflows if none existed it would never pull.
+- Added direktion hotkeys
+  - ctrl-alt-c Compile
+  - ctrl-alt-g Compile and Upload
+  - ctrl-alt-r Compile, Upload and Execute
+- Removed Create Workflow. Push Workflow should now automatically create remotely if it doesn't exist.
+- Fixed a bug where compiling Direktion didnt not compile to the appropriate file.
+- Added input and output to the Instance logs
+- Fixed bad YAML linting 
+- Updated YAML to handle new JQ interpretations with transform.
 ## [0.0.6] - 22-06-2021
 - Improved syntax highlighting.
 ## [0.0.5] - 22-06-2021

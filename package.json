@@ -161,8 +161,8 @@
 			{
 				"when": "editorIsOpen",
 				"command": "direktiv.convertUploadAndExecute",
-				"key": "ctrl+alt+x",
-				"mac": "shift+cmd+x"
+				"key": "ctrl+alt+r",
+				"mac": "shift+cmd+r"
 			},
 			{
 				"when": "editorIsOpen",

@@ -1,5 +1,4 @@
 import * as vscode from "vscode"
-import * as upath from 'upath';
 import {handleError} from "./util"
 
 const fetch = require("node-fetch")

@@ -5,12 +5,16 @@ import { DirektivManager } from './direktiv';
 import { InstanceManager } from './instance';
 import { InstancesProvider, Instance } from './instances';
 import { setupKeybinds } from './keybinds';
+import { getDirektionName } from './direktion';
 import { GetInput, appendSchema, readManifest, readManifestForRevision, writeManifest } from './util';
 
 const fs = require("fs")
 const path = require("path")
 const mkdirp = require("mkdirp")
 const yaml = require("yaml")
+
+const util = require('util');
+const execp = util.promisify(require('child_process').exec);
 
 const tempdir = require("os").tmpdir()
 const { exec } = require("child_process");
@@ -130,13 +134,17 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(onSave)
 
 	let compileToYAML = vscode.commands.registerCommand("direktion.compileToYAML", async(uri: vscode.Uri) => {
+		let fpath = uri.path
+		if (process.platform === "win32") {
+		    fpath = fpath.substring(1);
+		}
 
+		let wfname = await getDirektionName(fpath, direktionPath);
         // Todo use direktion tokens to find the workflow id and then replace 'basename' currently with what the workflow id would be.
-
-		// check if file already exists
-		let basename = path.basename(uri.path).split(path.extname(uri.path))[0]
-		let newYAMLPath = path.join(path.dirname(uri.path), `${basename}.direktiv.yaml`)
-
+		let newYAMLPath = path.join(path.dirname(uri.path), `${wfname}.direktiv.yaml`)
+		if (process.platform === "win32") {
+			newYAMLPath = newYAMLPath.substring(1);
+		}
 		if (fs.existsSync(newYAMLPath)) {
 			let result = await vscode.window.showInformationMessage("File already exists would you like to override?", "Yes", "No")
 			if (result == "No" || result == undefined) {
@@ -144,17 +152,13 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 
-		exec(`${direktionPath} compile ${uri.path}`, (error: Error, stdout: string, stderr: string)=> {
-			if (error) {
-				vscode.window.showErrorMessage(`${error}`)
-				return;
-			}
-			if (stderr) {
-				vscode.window.showErrorMessage(`${stderr}`)
-				return;
-			}
-			fs.writeFileSync(newYAMLPath, stdout)
-		})
+		const {stdout, stderr} = await execp(`${direktionPath} compile ${fpath}`)
+		if (stderr) {
+			vscode.window.showErrorMessage(`${stderr}`)
+			return;
+		}
+		fs.writeFileSync(newYAMLPath, stdout)
+		return newYAMLPath
 	})
 
 	context.subscriptions.push(compileToYAML)
@@ -234,16 +238,12 @@ export function activate(context: vscode.ExtensionContext) {
 
         // get workflowid from filepath
         const id = await manager.getID()
-		console.log(id)
         // get workflowRevision 
         const revision = await manager.GetWorkflowRevision(id)
-		console.log(revision)
         // get workflow data
         const yaml = await manager.GetWorkflowData(id)
-        console.log(yaml)
 		// get local manifest to update manifest when pulling
         const manifest = await readManifestForRevision(uri)
-		console.log(manifest)
         // update to new revision we're pulling
         manifest[id] = revision
 

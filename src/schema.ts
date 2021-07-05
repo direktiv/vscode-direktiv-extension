@@ -145,7 +145,7 @@ export const Schema = {
                 "description": "The type of the state"
               },
               "transform": {
-                "type": "string",
+                "type": "object",
                 "description": "JQ Command to transform the state's data output"
               },
               "transition": {

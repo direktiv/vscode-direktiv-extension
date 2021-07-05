@@ -13,9 +13,8 @@ export function setupKeybinds(context: vscode.ExtensionContext) {
     // convertDirektion to a YAML File and then upload the file
     let convertAndUploadDirektiv = vscode.commands.registerCommand('direktiv.convertAndUpload', async ()=> {
         if(vscode.window.activeTextEditor) {
-            // TODO this might need to return the output of what the new file name would be
-            await vscode.commands.executeCommand('direktion.compileToYAML', vscode.Uri.file(vscode.window.activeTextEditor.document.fileName))
-            await vscode.commands.executeCommand('direktiv.pushWorkflow', "NEW YAML FILE")
+            const fpath = await vscode.commands.executeCommand('direktion.compileToYAML', vscode.Uri.file(vscode.window.activeTextEditor.document.fileName))
+            await vscode.commands.executeCommand('direktiv.updateWorkflow',vscode.Uri.file(<string>fpath))
         }
     })
     context.subscriptions.push(convertAndUploadDirektiv)
@@ -23,10 +22,9 @@ export function setupKeybinds(context: vscode.ExtensionContext) {
     // convertDirektion to a YAML file, upload the file and execute the yaml file
     let convertUploadAndExecute = vscode.commands.registerCommand('direktiv.convertUploadAndExecute', async ()=> {
         if(vscode.window.activeTextEditor) {
-            // TODO this might need to return the output of what the new file name would be
-            await vscode.commands.executeCommand('direktion.compileToYAML', vscode.Uri.file(vscode.window.activeTextEditor.document.fileName))
-            await vscode.commands.executeCommand('direktiv.pushWorkflow', "NEW YAML FILE")
-            await vscode.commands.executeCommand('direktiv.executeWorkflow', "NEW YAML FILE")
+            const fpath = await vscode.commands.executeCommand('direktion.compileToYAML', vscode.Uri.file(vscode.window.activeTextEditor.document.fileName))
+            await vscode.commands.executeCommand('direktiv.updateWorkflow', vscode.Uri.file(<string>fpath))
+            await vscode.commands.executeCommand('direktiv.executeWorkflow', vscode.Uri.file(<string>fpath))
         }
     })
     context.subscriptions.push(convertUploadAndExecute)
