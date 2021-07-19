@@ -58,6 +58,10 @@ jobs:
         with:
           name: vsix
       - run: ls      
+      - name: npm install
+        uses: actions/npm@master
+        with:
+          args: install --unsafe-perm
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
