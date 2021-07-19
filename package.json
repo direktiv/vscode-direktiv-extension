@@ -278,7 +278,7 @@
 		"yaml": "^1.10.2"
 	}	,
 	"release": {
-		"branches": "master",
+		"branches": "main",
 		"verifyConditions": [
 			"@semantic-release/github"
 		],
