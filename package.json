@@ -2,6 +2,7 @@
 	"name": "Direktiv",
 	"displayName": "Direktiv",
 	"publisher": "direktiv",
+	"private": true,
 	"description": "An extension that provides linting while writing workflows and the ability to interact with workflows and instances",
 	"version": "0.0.6",
 	"repository": {
@@ -275,5 +276,20 @@
 		"slash": "^4.0.0",
 		"upath": "^2.0.1",
 		"yaml": "^1.10.2"
+	}	,
+	"release": {
+		"branches": "master",
+		"verifyConditions": [
+			"@semantic-release/github"
+		],
+		"publish": [
+			"@semantic-release/github"
+		],
+		"success": [
+			"@semantic-release/github"
+		],
+		"fail": [
+			"@semantic-release/github"
+		]
 	}
 }
