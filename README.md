@@ -4,6 +4,7 @@ Provides comprehensive Direktiv support to Visual Studio Code, via the use of YA
 
 ## Features
 
+- Direktion language helper.
 - YAML Linting for Workflow input (provided by the [YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) and our custom JSON Schema.)
   - Detects invalid inputs
   - Offers suggestions for what to fill in
