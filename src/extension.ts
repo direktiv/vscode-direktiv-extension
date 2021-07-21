@@ -7,6 +7,7 @@ import { InstancesProvider, Instance } from './instances';
 import { setupKeybinds } from './keybinds';
 import { getDirektionName } from './direktion';
 import { GetInput, appendSchema, readManifest, readManifestForRevision, writeManifest } from './util';
+const https = require('https')
 
 const fs = require("fs")
 const path = require("path")
@@ -26,14 +27,16 @@ let isMac =  process.platform === "darwin"
 let isWindows = process.platform === "win32"
 let isLinux = process.platform === "linux"
 
+const dlurl = "https://downloads.vorteil.io/direktion-release/"
+
 if(isWindows) {
-	binName = "direktion-windows.exe"
+	binName = "direktion.exe"
 }
 if (isMac) {
 	binName = "direktion-darwin"
 }
 if (isLinux){
-	binName = "direktion-linux"
+	binName = "direktion"
 }
 
 export const manifestDirektiv = ".direktiv.manifest.json"
@@ -46,6 +49,15 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "direktiv" is now active!');
 	let direktionPath = path.join(__filename, '..', '..', 'resources', binName)
 
+	console.log(direktionPath)
+	// check if direktionPath exists
+	if (!fs.existsSync(direktionPath)) {
+		console.log("direktion binary doesn't exist downloading...")
+		https.get(`${dlurl}${binName}`, (resp:any)=>{
+			console.log('piping')
+			resp.pipe(fs.createWriteStream(direktionPath))
+		})
+	}
 
 	let instances = new InstancesProvider(context.globalState)
 	// Pull any services from storage

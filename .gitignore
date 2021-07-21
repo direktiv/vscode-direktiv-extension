@@ -7,3 +7,6 @@ direktion
 direktion.tmGrammar.json
 direktion-*
 upx*
+/resources/direktion.exe
+/resources/direktion
+/resources/direktiv-darwin
