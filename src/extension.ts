@@ -56,6 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
 		https.get(`${dlurl}${binName}`, (resp:any)=>{
 			console.log('piping')
 			resp.pipe(fs.createWriteStream(direktionPath))
+            fs.chmodSync(direktionPath, 0o755)
 		})
 	}
 
