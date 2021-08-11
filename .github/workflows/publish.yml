@@ -40,9 +40,8 @@ jobs:
       # Runs a single command using the runners shell
       - name: Build the extension package
         run: |
-          mv ./direktion ./resources
           mv ./direktion.tmGrammar.json ./resources
-          npm install
+          yarn install
           make build
           make package
       - uses: actions/upload-artifact@v2

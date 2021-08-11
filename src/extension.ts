@@ -54,8 +54,9 @@ export function activate(context: vscode.ExtensionContext) {
 	if (!fs.existsSync(direktionPath)) {
 		console.log("direktion binary doesn't exist downloading...")
 		https.get(`${dlurl}${binName}`, (resp:any)=>{
-			console.log('piping')
+			console.log('piping data to stream')
 			resp.pipe(fs.createWriteStream(direktionPath))
+            console.log('chowning')
             fs.chmodSync(direktionPath, 0o755)
 		})
 	}
