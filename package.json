@@ -4,7 +4,7 @@
 	"publisher": "direktiv",
 	"private": true,
 	"description": "An extension that provides linting while writing workflows and the ability to interact with workflows and instances",
-	"version": "0.0.7",
+	"version": "1.0.2",
 	"repository": {
 		"url": "https://github.com/vorteil/vscode-direktiv-extension"
 	},
