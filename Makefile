@@ -12,9 +12,13 @@ extension:  build package
 
 .PHONY: build
 build:
+	yarn install
+	yarn compile
 	docker build -t $(IMAGE_NAME):$(TAG) .
 
 .PHONY: package
 package:
 	docker run --rm -v ${PWD}:/app $(IMAGE_NAME):$(TAG) package -o Direktiv.vsix
+	sudo chown ${USER} out
+	sudo chown -R ${USER} out/*.js
 	sudo chown ${USER} Direktiv.vsix
