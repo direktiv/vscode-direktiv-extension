@@ -53,12 +53,7 @@ export const Schema = {
         }
       }
     },
-    "required": ["id"],
     "properties": {
-      "id": {
-          "type": "string",
-          "description": "The name of the workflow."
-      },
       "description": {
           "type": "string",
           "description": "What does this workflow do?"

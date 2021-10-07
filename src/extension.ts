@@ -27,7 +27,7 @@ let isMac =  process.platform === "darwin"
 let isWindows = process.platform === "win32"
 let isLinux = process.platform === "linux"
 
-const dlurl = "https://downloads.vorteil.io/direktion-release/"
+// const dlurl = "https://downloads.vorteil.io/direktion-release/"
 
 if(isWindows) {
 	binName = "direktion.exe"
@@ -47,19 +47,18 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "direktiv" is now active!');
-	let direktionPath = path.join(__filename, '..', '..', 'resources', binName)
+	// let direktionPath = path.join(__filename, '..', '..', 'resources', binName)
 
-	console.log(direktionPath)
 	// check if direktionPath exists
-	if (!fs.existsSync(direktionPath)) {
-		console.log("direktion binary doesn't exist downloading...")
-		https.get(`${dlurl}${binName}`, (resp:any)=>{
-			console.log('piping data to stream')
-			resp.pipe(fs.createWriteStream(direktionPath))
-            console.log('chowning')
-            fs.chmodSync(direktionPath, 0o755)
-		})
-	}
+	// if (!fs.existsSync(direktionPath)) {
+	// 	console.log("direktion binary doesn't exist downloading...")
+	// 	https.get(`${dlurl}${binName}`, (resp:any)=>{
+	// 		console.log('piping data to stream')
+	// 		resp.pipe(fs.createWriteStream(direktionPath))
+    //         console.log('chowning')
+    //         fs.chmodSync(direktionPath, 0o755)
+	// 	})
+	// }
 
 	let instances = new InstancesProvider(context.globalState)
 	// Pull any services from storage
@@ -75,8 +74,8 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('instances', instances);
 
 	// create diagnostics collection for direktion
-	const direktionDiagnostics = vscode.languages.createDiagnosticCollection("direktion")
-	context.subscriptions.push(direktionDiagnostics)
+	// const direktionDiagnostics = vscode.languages.createDiagnosticCollection("direktion")
+	// context.subscriptions.push(direktionDiagnostics)
 
     context = setupKeybinds(context)
 
@@ -88,39 +87,39 @@ export function activate(context: vscode.ExtensionContext) {
 				fpath = fpath.substring(1);
 			}
 			// todo check if its not a direktion file then skip this step
-			exec(`${direktionPath} diagnostic ${fpath}`, (error: Error, stdout: string, stderr: string)=>{
-				if (error) {
-					vscode.window.showErrorMessage(`${error}`)
-					return;
-				}
-				if (stderr) {
-					vscode.window.showErrorMessage(`${stderr}`)
-					return;
-				}
-				if (stdout) {
-					let arr: Array<vscode.Diagnostic> = []
+		// 	exec(`${direktionPath} diagnostic ${fpath}`, (error: Error, stdout: string, stderr: string)=>{
+		// 		if (error) {
+		// 			vscode.window.showErrorMessage(`${error}`)
+		// 			return;
+		// 		}
+		// 		if (stderr) {
+		// 			vscode.window.showErrorMessage(`${stderr}`)
+		// 			return;
+		// 		}
+		// 		if (stdout) {
+		// 			let arr: Array<vscode.Diagnostic> = []
 
-					let output = JSON.parse(stdout)
-					for(let i=0; i < output.length; i++) {
-						let range = new vscode.Range(output[i].StartLine-1, output[i].StartColumn, output[i].EndLine-1, output[i].EndColumn)
-						let dig = new vscode.Diagnostic(range , output[i].Msg, undefined)
-						arr.push(dig)
-					}
-					direktionDiagnostics.set(e.uri, arr)
-				} else {
-					exec(`${direktionPath} format ${fpath}`, (error: Error, stdout: string, stderr: string )=>{
-						if (error) {
-							vscode.window.showErrorMessage(`${error}`)
-							return;
-						}
-						if(stderr) {
-							vscode.window.showErrorMessage(`${stderr}`)
-						}
+		// 			let output = JSON.parse(stdout)
+		// 			for(let i=0; i < output.length; i++) {
+		// 				let range = new vscode.Range(output[i].StartLine-1, output[i].StartColumn, output[i].EndLine-1, output[i].EndColumn)
+		// 				let dig = new vscode.Diagnostic(range , output[i].Msg, undefined)
+		// 				arr.push(dig)
+		// 			}
+		// 			direktionDiagnostics.set(e.uri, arr)
+		// 		} else {
+		// 			exec(`${direktionPath} format ${fpath}`, (error: Error, stdout: string, stderr: string )=>{
+		// 				if (error) {
+		// 					vscode.window.showErrorMessage(`${error}`)
+		// 					return;
+		// 				}
+		// 				if(stderr) {
+		// 					vscode.window.showErrorMessage(`${stderr}`)
+		// 				}
 						
-					})
-				}
+		// 			})
+		// 		}
 				
-			})
+		// 	})
 		}
         let split = e.fileName.split(".")
         if(split[1] === "direktiv" && split[2] === "yaml") {
@@ -137,7 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
                     if(auth === undefined){
                         return
                     }
-                    const manager = new DirektivManager(auth.url, auth.namespace, auth.token, e.uri)
+                    const manager = new DirektivManager(auth.url, auth.namespace, auth.token, auth.folder, e.uri)
                     let exist = await manager.doesWorkflowExist(ydata.id)
                     if (!exist) {
                         await manager.CreateWorkflow()
@@ -151,38 +150,38 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(onSave)
 
-	let compileToYAML = vscode.commands.registerCommand("direktion.compileToYAML", async(uri: vscode.Uri) => {
-		let fpath = uri.path
-		if (process.platform === "win32") {
-		    fpath = fpath.substring(1);
-		}
+	// let compileToYAML = vscode.commands.registerCommand("direktion.compileToYAML", async(uri: vscode.Uri) => {
+	// 	let fpath = uri.path
+	// 	if (process.platform === "win32") {
+	// 	    fpath = fpath.substring(1);
+	// 	}
 
-		let wfname = await getDirektionName(fpath, direktionPath);
-        // Todo use direktion tokens to find the workflow id and then replace 'basename' currently with what the workflow id would be.
-		let newYAMLPath = path.join(path.dirname(uri.path), `${wfname}.direktiv.yaml`)
-		if (process.platform === "win32") {
-			newYAMLPath = newYAMLPath.substring(1);
-		}
-		if (fs.existsSync(newYAMLPath)) {
-			let result = await vscode.window.showInformationMessage("File already exists would you like to override?", "Yes", "No")
-			if (result == "No" || result == undefined) {
-				return
-			}
-		}
+	// 	let wfname = await getDirektionName(fpath, direktionPath);
+    //     // Todo use direktion tokens to find the workflow id and then replace 'basename' currently with what the workflow id would be.
+	// 	let newYAMLPath = path.join(path.dirname(uri.path), `${wfname}.direktiv.yaml`)
+	// 	if (process.platform === "win32") {
+	// 		newYAMLPath = newYAMLPath.substring(1);
+	// 	}
+	// 	if (fs.existsSync(newYAMLPath)) {
+	// 		let result = await vscode.window.showInformationMessage("File already exists would you like to override?", "Yes", "No")
+	// 		if (result == "No" || result == undefined) {
+	// 			return
+	// 		}
+	// 	}
 
-		const {stdout, stderr} = await execp(`${direktionPath} compile ${fpath}`)
-		if (stderr) {
-			vscode.window.showErrorMessage(`${stderr}`)
-			return;
-		}
-		fs.writeFileSync(newYAMLPath, stdout)
-		return newYAMLPath
-	})
+	// 	const {stdout, stderr} = await execp(`${direktionPath} compile ${fpath}`)
+	// 	if (stderr) {
+	// 		vscode.window.showErrorMessage(`${stderr}`)
+	// 		return;
+	// 	}
+	// 	fs.writeFileSync(newYAMLPath, stdout)
+	// 	return newYAMLPath
+	// })
 
-	context.subscriptions.push(compileToYAML)
+	// context.subscriptions.push(compileToYAML)
 
 	let openLogs = vscode.commands.registerCommand("direktiv.openLogs", async(instance: Instance)=>{
-		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.label)
+		const instanceManager = new InstanceManager(instance.values.url, instance.values.token, instance.values.namespace, instance.values.id)
 		await instanceManager.createTempFile()
 		await instanceManager.openLogs()
 
@@ -236,15 +235,30 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(addInstanceManager)
 
 	let pushWorkflow = vscode.commands.registerCommand("direktiv.pushWorkflow", async(uri: vscode.Uri)=>{
-		let auth = await readManifest(uri)
+        let auth = await readManifest(uri)
 		if(auth === undefined){
 			return
 		}
-		const manager = new DirektivManager(auth.url, auth.namespace, auth.token, uri)
-		await manager.CreateWorkflow()
+		const manager = new DirektivManager(auth.url, auth.namespace, auth.token, auth.folder, uri)
+        await manager.CreateWorkflow()
 	})
 
 	context.subscriptions.push(pushWorkflow)
+
+    let createDirectory = vscode.commands.registerCommand("direktiv.createDirectory", async(uri: vscode.Uri) =>{
+        let auth = await readManifest(uri)
+		if(auth === undefined){
+			return
+		}
+        const manager = new DirektivManager(auth.url, auth.namespace, auth.token, auth.folder, uri)
+        let dir = await vscode.window.showInputBox({title: "Enter name of directory to create", ignoreFocusOut: true})
+        if(dir === undefined){
+            dir = ""
+        }
+        await manager.CreateDirectory(dir)
+    })
+
+    context.subscriptions.push(createDirectory)
 
     let pullWorkflow = vscode.commands.registerCommand('direktiv.pullWorkflow', async(uri: vscode.Uri) => {
         let auth = await readManifest(uri)
@@ -252,28 +266,17 @@ export function activate(context: vscode.ExtensionContext) {
             return
         }
 
-        const manager = new DirektivManager(auth.url, auth.namespace, auth.token, uri)
-
-        // get workflowid from filepath
-        const id = await manager.getID()
-        // get workflowRevision 
-        const revision = await manager.GetWorkflowRevision(id)
-        // get workflow data
-        const yaml = await manager.GetWorkflowData(id)
-		// get local manifest to update manifest when pulling
-        const manifest = await readManifestForRevision(uri)
-        // update to new revision we're pulling
-        manifest[id] = revision
-
+        const manager = new DirektivManager(auth.url, auth.namespace, auth.token, auth.folder, uri)
+        // get workflow path from filepath
+        const id = uri.path.split(auth.folder)[1].split(".direktiv.yaml")[0]
+        const yaml = await manager.GetWFData(id)
 		let fpath = uri.path
 		if (process.platform === "win32") {
             fpath = fpath.substring(1);
         }
         // write yaml out
         fs.writeFileSync(fpath, yaml)
-
-        // write manifest out
-        writeManifest(uri, JSON.stringify(manifest))
+        vscode.window.showInformationMessage("Successfully pulled workflow")
     })
 
     context.subscriptions.push(pullWorkflow)
@@ -283,7 +286,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if(auth === undefined) {
 			return
 		}
-		const manager = new DirektivManager(auth.url, auth.namespace, auth.token, uri)
+		const manager = new DirektivManager(auth.url, auth.namespace, auth.token, auth.folder, uri)
 		await manager.UpdateWorkflow()
 	})
 
@@ -295,17 +298,19 @@ export function activate(context: vscode.ExtensionContext) {
 				return
 			}
 
-			const manager = new DirektivManager(auth.url, auth.namespace, auth.token, uri)
+			const manager = new DirektivManager(auth.url, auth.namespace, auth.token, auth.folder, uri)
 			let id = await manager.ExecuteWorkflow()
-
 			if(id !== "") {
-				// todo handle logging and other details
-				const instanceManager = new InstanceManager(auth.url, auth.token, id)
-				await instanceManager.createTempFile()
-				await instanceManager.openLogs()
+			// 	// todo handle logging and other details
+				const instanceManager = new InstanceManager(auth.url, auth.token, auth.namespace, id)
+				
+                await instanceManager.createTempFile()
+				
+                await instanceManager.openLogs()
 
                 // make sure input gets stored globally before we start getting logs to add input at the front
                 await instanceManager.getExtraDataForInstanceString("input")
+                
                 let fetchedOutput = false
 				let timer = setInterval(async()=>{
 					let status = await instanceManager.getInstanceStatus()
@@ -329,12 +334,18 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(executeWorkflow)
 
 	let downloadWorkflows = vscode.commands.registerCommand('direktiv.connect', async (uri: vscode.Uri) => {
-		let input = await GetInput()
-		if (input === undefined) {
-			return
-		}
-		const manager = new DirektivManager(input.url, input.namespace, input.token, uri)
-		await manager.GetWorkflows()
+		// let input = await GetInput()
+		// if (input === undefined) {
+		// 	return
+		// }
+        let input = {
+            url: "http://192.168.1.40",
+            namespace: "test",
+            token: "",
+            folder: "/home/trentis/test"
+        }
+		const manager = new DirektivManager(input.url, input.namespace, input.token, input.folder, uri)
+		await manager.GetWorkflows("")
 	});
 
 	context.subscriptions.push(downloadWorkflows);
@@ -344,14 +355,14 @@ export function activate(context: vscode.ExtensionContext) {
 		if (auth === undefined) {
 			return
 		}
-		const manager = new DirektivManager(auth.url, auth.namespace, auth.token, uri)
+		const manager = new DirektivManager(auth.url, auth.namespace, auth.token, auth.folder, uri)
 		await manager.DeleteWorkflow()
 	})
 
 	context.subscriptions.push(deleteWorkflow)
 
 	let cancelInstance = vscode.commands.registerCommand("direktiv.cancelInstance", async(inst: Instance)=>{
-		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.label)
+		const instanceManager = new InstanceManager(inst.values["url"], inst.values["token"], inst.values.namespace, inst.values.id)
 		await instanceManager.cancelInstance()
 		instances.refresh()
 	})
@@ -365,11 +376,12 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(removeInstancesManager)
 
 	let rerunInstance = vscode.commands.registerCommand("direktiv.rerunInstance", async(inst: any)=>{
-		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.label)
-		instanceManager.rerunInstance().then(async () => {
+		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.values.namespace, inst.values.id)
+        await instanceManager.getInstanceStatus()
+		
+        instanceManager.rerunInstance().then(async () => {
 			await instanceManager.createTempFile()
 			await instanceManager.openLogs()
-
 			// refresh instance list
 			instances.refresh()
             // write the input
@@ -401,7 +413,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(rerunInstance)
 
 	let getInputInstance = vscode.commands.registerCommand("direktiv.getInputInstance", async(inst: any)=>{
-		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.label)
+		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.values.namespace, inst.label)
 		await instanceManager.createExtraTempFiles()
 		await instanceManager.getExtraDataForInstance("input")
 		await instanceManager.openInput()
@@ -410,7 +422,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(getInputInstance)
 
 	let getOutputInstance = vscode.commands.registerCommand("direktiv.getOutputInstance", async(inst: any)=>{
-		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.label)
+		const instanceManager = new InstanceManager(inst.values.url, inst.values.token, inst.values.namespace, inst.label)
 		await instanceManager.createExtraTempFiles()
 		await instanceManager.getExtraDataForInstance("output")
 		await instanceManager.openOutput()

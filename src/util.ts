@@ -12,6 +12,7 @@ interface Auth {
     url: string
     namespace: string
     token: string
+    folder: string
 }
 
 export async function writeManifest(uri: vscode.Uri, data: string) {
@@ -31,11 +32,20 @@ export async function readManifestForRevision(uri: vscode.Uri): Promise<any| und
         const data = fs.readFileSync(manifest, {encoding: "utf8"})
         return JSON.parse(data)
     } else {
-        vscode.window.showErrorMessage("Manifest doesn't exist right-click on the folder to Download Workflows.")
+        vscode.window.showErrorMessage("Manifest doesn't exist right-click on the workspace folder to Download Workflows.")
+    }
+}
+
+export async function getWorkspaceFolder(): Promise<string> {
+    if(vscode.workspace.workspaceFolders === undefined) {
+        return ""
+    } else {
+        return vscode.workspace.workspaceFolders[0].uri.path
     }
 }
 export async function readManifest(uri: vscode.Uri): Promise<Auth | undefined>{
-    let manifest = path.join(path.dirname(uri.path.toString()), manifestDirektiv)
+    let mfpath = await getWorkspaceFolder()
+    let manifest = path.join(mfpath, manifestDirektiv)
     if (process.platform === "win32") {
         manifest = manifest.substring(1);
     }
@@ -47,10 +57,11 @@ export async function readManifest(uri: vscode.Uri): Promise<Auth | undefined>{
         return {
             namespace: json.namespace,
             url: json.url,
-            token: jsonToken[json.url]
+            token: jsonToken[json.url],
+            folder: json.folder
         }
     } else {
-        vscode.window.showErrorMessage("Manifest doesn't exist right-click on the folder to Download Workflows.")
+        vscode.window.showErrorMessage("Manifest doesn't exist right-click on the workspace folder to Download Workflows.")
     }
 }
 

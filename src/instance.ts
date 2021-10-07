@@ -6,6 +6,8 @@ const fetch = require("node-fetch")
 const path = require("path")
 const fs = require('fs')
 const dayjs = require('dayjs')
+var utc = require('dayjs/plugin/utc')
+dayjs.extend(utc)
 
 const search = '/'  
 const replacer = new RegExp(search, 'g')
@@ -18,15 +20,19 @@ export class InstanceManager {
     public timer: any
     public fpath: string
 
+    public namespace: string
     public input: string
+    public as: string
     public output: string
 
-    constructor(url:string, token: string, id: string) {
+    constructor(url:string, token: string, namespace: string, id: string) {
         this.id = id
         this.token = token
         this.url = url
+        this.namespace = namespace
         this.timer = null
 
+        this.as = ""
         this.input = ""
         this.output = ""
 
@@ -35,7 +41,7 @@ export class InstanceManager {
 
     async cancelInstance() {
         try {
-            let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/instances/${this.id}/cancel`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
@@ -55,7 +61,7 @@ export class InstanceManager {
 
     async getInstanceStatus(): Promise<string> {
         try {
-            let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/instances/${this.id}`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
@@ -65,7 +71,8 @@ export class InstanceManager {
                 await handleError(resp, "Get Instance", "getInstance")
             } else {
                 let json = await resp.json()
-                return json.status
+                this.as = json.instance.as
+                return json.instance.status
             }
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
@@ -75,7 +82,7 @@ export class InstanceManager {
 
     async getInstanceDetails(resolve: any, reject: any) {
         try {
-            let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/instances/${this.id}`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
@@ -137,7 +144,11 @@ export class InstanceManager {
     }
 
     async getExtraDataForInstanceString(field: string) {
-            let resp = await fetch(`${this.url}/api/instances/${this.id}`, {
+            let urli = `${this.url}/api/namespaces/${this.namespace}/instances/${this.id}/input`    
+            if(field === "output") {
+                urli =`${this.url}/api/namespaces/${this.namespace}/instances/${this.id}/output`
+            }
+            let resp = await fetch(urli, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
@@ -146,12 +157,12 @@ export class InstanceManager {
             if(!resp.ok) {
                 await handleError(resp, "Get Input / Output", "getInstance")
             } else {
-                let json = await resp.json()              
+                let json = await resp.json()   
                 if (field == "input") {
-                    this.input = Buffer.from(json.input, 'base64').toString("ascii")
+                    this.input = Buffer.from(json.data, 'base64').toString("ascii")
                     return this.input
                 } else if (field == "output"){
-                    this.output = Buffer.from(json.output, 'base64').toString("ascii")
+                    this.output = Buffer.from(json.data, 'base64').toString("ascii")
                     return this.output
                 }
             }
@@ -172,7 +183,7 @@ export class InstanceManager {
     async getLogsForInstance() {
         try {
             // TODO may need to handle pagination at some point.
-            let resp = await fetch(`${this.url}/api/instances/${this.id}/logs?offset=0&limit=6000`, {
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/instances/${this.id}/logs`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
@@ -184,9 +195,9 @@ export class InstanceManager {
                 let json = await resp.json()
                 // open the files temp for logs as this is coming from the activity bar 
                 let str = ``
-                for(let i=0; i < json.workflowInstanceLogs.length; i++) {
-                    let time = dayjs.unix(`${json.workflowInstanceLogs[i].timestamp.seconds}.${json.workflowInstanceLogs[i].timestamp.nanos}`).format("h:mm:ss.SSS")
-                    str += `[${time}] ${json.workflowInstanceLogs[i].message}\n`
+                for(let i=0; i < json.edges.length; i++) {
+                    let time = dayjs.utc(json.edges[i].node.t).local().format("HH:mm:ss.SSS")
+                    str += `[${time}] ${json.edges[i].node.msg}\n`
                 }
                 // write file to directory
                 str = `------INPUT-------\n${this.input}\n------LOGS--------\n${str}`
@@ -199,14 +210,14 @@ export class InstanceManager {
 
     async rerunInstance() {
         // Split id - {Namesapce}/{Workflow}/{uid}
-        const splitID = this.id.split("/")
-        const ns = splitID[0]
-        const wf = splitID[1]
+        // const splitID = this.id.split("/")
+        // const ns = splitID[0]
+        // const wf = splitID[1]
 
         try {
             let inputBody = await this.getExtraDataForInstanceString("input")
 
-            let resp = await fetch(`${this.url}/api/namespaces/${ns}/workflows/${wf}/execute`,{
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/tree//${this.as}?op=execute`,{
                 method: "POST",
                 body: inputBody,
                 headers: {
@@ -220,7 +231,7 @@ export class InstanceManager {
                 let json = await resp.json()
 
                 // Set new id and new path
-                this.id = json.instanceId
+                this.id = json.instance
                 this.fpath = path.join(tempdir,".direktiv", this.id.replace(replacer, "-"))
                 return
             }

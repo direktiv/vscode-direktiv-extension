@@ -1,5 +1,5 @@
 import * as vscode from "vscode"
-import {handleError} from "./util"
+import {getWorkspaceFolder, handleError} from "./util"
 
 const fetch = require("node-fetch")
 const path = require("path")
@@ -12,19 +12,21 @@ export class DirektivManager {
     public url
     public namespace
     public token
+    public folder
 
     public connection : string
 
-    // key calue of workflow id to revision of remote
+    // key value of workflow id to revision of remote
     public workflowRevisions: Map<string, string>
 
     // key value of workflow id to yaml
     public workflowdata : Map<string, string>
 
-    constructor(url: string, namespace: string, token: string, uri: vscode.Uri) {
+    constructor(url: string, namespace: string, token: string, folder: string, uri: vscode.Uri) {
         this.url = url
         this.namespace = namespace
         this.token = token   
+        this.folder = folder
         this.workflowdata = new Map()
         this.workflowRevisions = new Map()
 
@@ -63,9 +65,11 @@ export class DirektivManager {
     }
 
     async DeleteWorkflow() {
-        let f = this.getID()
+
+        let f = this.connection.split(this.folder)[1].split(".direktiv.yaml")[0]
+
         try {
-            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${f}`, {
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/tree/${f}?op=delete-node`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
@@ -83,18 +87,53 @@ export class DirektivManager {
         }
     }
     
+
+    async CreateDirectory(dir: string) {
+        try {
+            let fpath = path.join(this.connection, dir)
+            let rpath = path.join(this.connection.split(this.folder)[1], dir)
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/tree/${rpath}?op=create-directory`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${this.token}`
+                },
+            })
+            if (!resp.ok) {
+                await handleError(resp, "Create Directory", "createDirectory")
+            } else {
+                let json = await resp.json()
+                // successfully uploaded change local manifest to have that revision
+                // let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
+                // // if (process.platform === "win32") {
+                // //     manifestPath = manifestPath.substring(1);
+                // // }
+                // let direktivManifest = fs.readFileSync(manifestPath, {encoding:'utf8'});
+                // let direktivJSON = JSON.parse(direktivManifest)
+                // direktivJSON[dataParse.id] = 0
+
+                // await this.checkFileNeedsChanged(dataParse, f, direktivJSON)
+
+                // fs.writeFileSync(manifestPath, JSON.stringify(direktivJSON))
+                if (!fs.existsSync(`${fpath}`)){
+                    fs.mkdirSync(`${fpath}`)
+                }
+
+                vscode.window.showInformationMessage("Successfully created new Directory locally and remotely.")
+            } 
+        } catch(e) {
+            vscode.window.showErrorMessage(e.message)
+        }
+    }
+
+    
     async CreateWorkflow() {
         try {
+            let data = fs.readFileSync(this.connection, {encoding:'utf8'});
+            let dataParse = yaml.parse(data)
+            let fpath = this.connection.split(this.folder)[1].split(".direktiv.yaml")[0]
 
-        let data = fs.readFileSync(this.connection, {encoding:'utf8'});
-        
-        let dataParse = yaml.parse(data)
-
-        let f = this.connection.substr(0, this.connection.lastIndexOf('.'));
-        f = f.substr(0, f.lastIndexOf('.'))
-
-            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows`, {
-                method: "POST",
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/tree/${fpath}?op=create-workflow`, {
+                method: "PUT",
                 headers: {
                     "Authorization": `Bearer ${this.token}`,
                     "Content-Type": "text/yaml"
@@ -102,20 +141,26 @@ export class DirektivManager {
                 body: data
             })
             if (!resp.ok) {
-                await handleError(resp, "Create Workflow", "createWorkflow")
+                if(resp.status === 409) {
+                    // ignore error as its already there
+                    return
+                } else {
+                    await handleError(resp, "Create Workflow", "createWorkflow")
+                }
             } else {
+                let json = await resp.json()
                 // successfully uploaded change local manifest to have that revision
-                let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
-                // if (process.platform === "win32") {
-                //     manifestPath = manifestPath.substring(1);
-                // }
-                let direktivManifest = fs.readFileSync(manifestPath, {encoding:'utf8'});
-                let direktivJSON = JSON.parse(direktivManifest)
-                direktivJSON[dataParse.id] = 0
+                // let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
+                // // if (process.platform === "win32") {
+                // //     manifestPath = manifestPath.substring(1);
+                // // }
+                // let direktivManifest = fs.readFileSync(manifestPath, {encoding:'utf8'});
+                // let direktivJSON = JSON.parse(direktivManifest)
+                // direktivJSON[dataParse.id] = 0
 
-                await this.checkFileNeedsChanged(dataParse, f, direktivJSON)
+                // await this.checkFileNeedsChanged(dataParse, f, direktivJSON)
 
-                fs.writeFileSync(manifestPath, JSON.stringify(direktivJSON))
+                // fs.writeFileSync(manifestPath, JSON.stringify(direktivJSON))
 
                 vscode.window.showInformationMessage("Successfully created new Workflow remotely.")
             } 
@@ -125,9 +170,9 @@ export class DirektivManager {
     }
 
     async ExecuteWorkflow(): Promise<string> {
-        let f = this.getID()
+        let f =  this.connection.split(this.folder)[1].split(".direktiv.yaml")[0]
         try {
-            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${f}/execute`,{
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/tree/${f}?op=execute`,{
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
@@ -137,7 +182,7 @@ export class DirektivManager {
                 await handleError(resp, "Execute Workflow", "invokeWorkflow")
             } else {
                 let json = await resp.json()
-                return json.instanceId
+                return json.instance
             }
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
@@ -149,11 +194,11 @@ export class DirektivManager {
 
 
         try {
-                    
-        let data = fs.readFileSync(this.connection, {encoding:'utf8'});
-        let dataParse = yaml.parse(data)    
-            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${f}`, {
-                method: "PUT",
+            let fpath = this.connection.split(this.folder)[1].split(".direktiv.yaml")[0]
+            let data = fs.readFileSync(this.connection, {encoding:'utf8'});
+            let dataParse = yaml.parse(data)    
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/tree/${fpath}?op=update-workflow`, {
+                method: "POST",
                 body: data,
                 headers: {
                     "Content-Type": "text/yaml",
@@ -169,15 +214,15 @@ export class DirektivManager {
                 }
             } else {
                 // Update revision locally as update was successful
-                direktiv[f] = direktiv[f] + 1
-                let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
+                // direktiv[f] = direktiv[f] + 1
+                // let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
                 // if (process.platform === "win32") {
                 //     manifestPath = manifestPath.substring(1);
                 // }
-                fs.writeFileSync(manifestPath, JSON.stringify(direktiv))
+                // fs.writeFileSync(manifestPath, JSON.stringify(direktiv))
                 vscode.window.showInformationMessage(`Successfully updated ${f} remotely.`)
             }
-        await this.checkFileNeedsChanged(dataParse, f, direktiv)
+        // await this.checkFileNeedsChanged(dataParse, f, direktiv)
 
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
@@ -211,54 +256,74 @@ export class DirektivManager {
 
     async UpdateWorkflow() {
         let f = this.getID()
-        let manifestPath = path.join(path.dirname(this.connection), ".direktiv.manifest.json")
+        let wspacefolder = await getWorkspaceFolder()
+        let manifestPath = path.join(wspacefolder, ".direktiv.manifest.json")
         // if (process.platform === "win32") {
         //     manifestPath = manifestPath.substring(1);
         // }
-        // read the .direktiv file to get revision
         let direktiv = fs.readFileSync(manifestPath, {encoding: "utf8"})
         let direktivJSON = JSON.parse(direktiv)
-        let revision = await this.GetWorkflowRevision(f)
         
-        // check the revision id of the remote
-        if(direktivJSON[f] < revision) {
-            let x = await vscode.window.showInformationMessage("Remote revision is greater than the local YAML file. Do you want to still update?", "Yes", "No")
-            if(x === "Yes") {
-                // set revision to current remote one to update successfully.
-                direktivJSON[f] = revision
-                await this.pushWorkflow(f, direktivJSON)
-            }    
-        } else {
-            await this.pushWorkflow(f, direktivJSON)
-        }
+        await this.pushWorkflow(f, direktivJSON)
     }
 
-    async GetWorkflows() {
+    async GetWorkflows(path: string) {
         try {
-            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/`, {
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/tree/${path}`, {
                 method: "GET",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
                 }
             })
             if(!resp.ok) {
-                await handleError(resp, 'Fetch Workflows', "getWorkflows")
+                await handleError(resp, 'Fetch Tree', "getWorkflows")
             } else {
                 let json = await resp.json()
-
-                if (json.workflows) {
-                    for (const workflow of json.workflows) {
-                        let wfdata = await this.GetWorkflowData(workflow.id)
-                        this.workflowdata.set(workflow.id, wfdata)
+                // loop through directories
+                for (let i=0; i < json.children.edges.length; i++) {
+                    if(json.children.edges[i].node.type === "workflow"){
+                        // write the file 
+                        let wfdata = await this.GetWFData(json.children.edges[i].node.path)
+                        this.workflowdata.set(json.children.edges[i].node.path, wfdata)
+                    } else {
+                        // create a directory at the path
+                        if (!fs.existsSync(`${this.connection}/${json.children.edges[i].node.path}`)){
+                            fs.mkdirSync(`${this.connection}/${json.children.edges[i].node.path}`)
+                        }
+                        // refetch details about that directory to see if workflows exist here
+                        await this.GetWorkflows(`${json.children.edges[i].node.path}`)
                     }
                 }
-
                 await this.ExportNamespace()
             }
         } catch(e) {
             vscode.window.showErrorMessage(e.message)
         }
-        return []
+        // try {
+        //     let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/`, {
+        //         method: "GET",
+        //         headers: {
+        //             "Authorization": `Bearer ${this.token}`
+        //         }
+        //     })
+        //     if(!resp.ok) {
+        //         await handleError(resp, 'Fetch Workflows', "getWorkflows")
+        //     } else {
+        //         let json = await resp.json()
+
+        //         if (json.workflows) {
+        //             for (const workflow of json.workflows) {
+        //                 let wfdata = await this.GetWorkflowData(workflow.id)
+        //                 this.workflowdata.set(workflow.id, wfdata)
+        //             }
+        //         }
+
+        //         await this.ExportNamespace()
+        //     }
+        // } catch(e) {
+        //     vscode.window.showErrorMessage(e.message)
+        // }
+        // return []
     }
 
     async GetWorkflowRevision(wf: string): Promise<string>{
@@ -285,26 +350,47 @@ export class DirektivManager {
         return ""
     }
 
-    async GetWorkflowData(wf: string): Promise<string> {
+    async GetWFData(wfpath: string) : Promise<string> {
         try {
-            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${wf}`, {
-                method: "GET",
+            let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/tree/${wfpath}`, {
+                method :"GET",
                 headers: {
                     "Authorization": `Bearer ${this.token}`
                 }
             })
-            if(!resp.ok) {
+            if (!resp.ok) {
                 await handleError(resp, 'Fetch Workflows', "getWorkflows")
             } else {
                 let json = await resp.json()
-                this.workflowRevisions.set(wf, json.revision)
-                return Buffer.from(json.workflow, 'base64').toString("ascii")
+                this.workflowRevisions.set(wfpath, json.revision.hash)
+                return Buffer.from(json.revision.source, 'base64').toString("ascii")
             }
         }catch(e) {
             vscode.window.showErrorMessage(e.message)
         }
         return ""
     }
+
+    // async GetWorkflowData(wf: string): Promise<string> {
+    //     try {
+    //         let resp = await fetch(`${this.url}/api/namespaces/${this.namespace}/workflows/${wf}`, {
+    //             method: "GET",
+    //             headers: {
+    //                 "Authorization": `Bearer ${this.token}`
+    //             }
+    //         })
+    //         if(!resp.ok) {
+    //             await handleError(resp, 'Fetch Workflows', "getWorkflows")
+    //         } else {
+    //             let json = await resp.json()
+    //             this.workflowRevisions.set(wf, json.revision)
+    //             return Buffer.from(json.workflow, 'base64').toString("ascii")
+    //         }
+    //     }catch(e) {
+    //         vscode.window.showErrorMessage(e.message)
+    //     }
+    //     return ""
+    // }
 
     async ExportNamespace() {
         let nsContainer = path.join(this.connection,  ".direktiv.manifest.json")
@@ -342,7 +428,7 @@ export class DirektivManager {
         let revisions = ``
 
         this.workflowRevisions.forEach((v: string, k:string)=>{
-            revisions += `"${k}": ${v},\n\t`
+            revisions += `"${k}": "${v}",\n\t`
         })
 
         // trim the last ,\n from revisions for valid json
@@ -355,7 +441,8 @@ export class DirektivManager {
         // create a manifest file
         fs.writeFileSync(path.join(this.connection, `.direktiv.manifest.json`), `{
     "url": "${this.url}",
-    "namespace": "${this.namespace}"
+    "namespace": "${this.namespace}",
+    "folder": "${this.connection}"
     ${revisions}
 }`)
     }

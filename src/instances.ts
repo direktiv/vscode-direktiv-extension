@@ -79,8 +79,7 @@ public manager: Map<string, any>
 
   private async getInstancesForNamespace(url: string, token: string, namespace: string): Promise<Instance[]> {
     try {
-        // TODO replace pagination with full fetch
-        let resp = await fetch(`${url}/api/instances/${namespace}?offset=0&limit=1000`,{
+        let resp = await fetch(`${url}/api/namespaces/${namespace}/instances`,{
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`
@@ -91,9 +90,9 @@ public manager: Map<string, any>
         } else {
             let json = await resp.json()
             let arr = []
-            if(json.workflowInstances) {
-                for(let i=0; i < json.workflowInstances.length; i++) {
-                    arr.push(new Instance(json.workflowInstances[i].id, {url: url, token: token, namespace: namespace, status: json.workflowInstances[i].status}, vscode.TreeItemCollapsibleState.None))
+            if(json.instances.edges) {
+                for(let i=0; i < json.instances.edges.length; i++) {
+                    arr.push(new Instance(json.instances.edges[i].node.as, {id: json.instances.edges[i].node.id, url: url, token: token, namespace: namespace, status: json.instances.edges[i].node.status}, vscode.TreeItemCollapsibleState.None))
                 }
             }
             return arr

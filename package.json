@@ -125,6 +125,10 @@
 				"title": "Execute Workflow",
 				"command": "direktiv.executeWorkflow"
 			},
+            {
+                "title": "Create Directory Remotely",
+                "command": "direktiv.createDirectory"
+            },
 			{
 				"title": "Delete Workflow",
 				"command": "direktiv.deleteWorkflow"
@@ -215,6 +219,10 @@
 					"when": "explorerResourceIsFolder",
 					"command": "direktiv.connect"
 				},
+                {
+                    "when": "explorerResourceIsFolder",
+                    "command": "direktiv.createDirectory"
+                },
 				{
 					"when": "resourceExtname == .direktion",
 					"command": "direktion.compileToYAML",
